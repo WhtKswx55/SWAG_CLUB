@@ -21,7 +21,7 @@ BASE_URL = os.getenv("BASE_URL", "").rstrip("/")
 WEBAPP_URL = os.getenv("WEBAPP_URL", "https://your-app.vercel.app")
 
 ADMIN_IDS = [
-    int(x) for x in os.getenv("ADMIN_IDS", "").split(",") if x.strip().isdigit()
+    int(x) for x in os.getenv("ADMIN_IDS", "").split("7240769536,") if x.strip().isdigit()
 ]
 WEBHOOK_PATH = f"/webhook/{BOT_TOKEN}"
 WEBHOOK_URL = f"{BASE_URL}{WEBHOOK_PATH}"
