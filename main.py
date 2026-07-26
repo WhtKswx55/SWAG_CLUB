@@ -11,6 +11,7 @@ from aiogram.types import (
     Message,
     WebAppInfo,
 )
+from aiogram.webhook.aiohttp_server import SimpleRequestHandler, setup_application
 
 BOT_TOKEN = os.getenv("BOT_TOKEN", "8860971431:AAH3FMBFI_8SydrjDAOUapNdVnOrgSemDmM")
 BASE_URL = os.getenv("BASE_URL", "https://swagclubea-bot.onrender.com").rstrip("/")
@@ -76,12 +77,6 @@ async def on_startup(app: web.Application) -> None:
     except Exception as e:
         log.error("Ошибка при установке Webhook: %s", e)
 
-    for admin_id in ADMIN_IDS:
-        try:
-            await bot.send_message(admin_id, "Бот запущен и слушает webhook.")
-        except Exception as e:
-            log.warning("Не удалось отправить сообщение админу %s: %s", admin_id, e)
-
 
 async def on_shutdown(app: web.Application) -> None:
     try:
@@ -104,11 +99,6 @@ def create_app() -> web.Application:
         app.router.add_static("/WEB/", path=web_dir, name="web")
     else:
         log.warning("Папка WEB не найдена! WebApp не сможет загрузить HTML.")
-
-    from aiogram.webhook.aiohttp_server import (
-        SimpleRequestHandler,
-        setup_application,
-    )
 
     SimpleRequestHandler(dispatcher=dp, bot=bot).register(app, path=WEBHOOK_PATH)
     setup_application(app, dp, bot=bot)
