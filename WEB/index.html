@@ -1,0 +1,409 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>SWAG CLUB</title>
+
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+<style>
+  :root{
+    --bg:#0b0b0a;
+    --panel:#141311;
+    --panel2:#1b1917;
+    --line:#2a2723;
+    --text:#f3f1ec;
+    --text-dim:#9a958a;
+    --text-faint:#68655c;
+    --red:#e8332b;
+    --red-dark:#b8231d;
+    --tan:#c9974d;
+    --olive:#3d2b1a;
+    --vh: 1vh;
+  }
+
+  *{ box-sizing:border-box; margin:0; padding:0; -webkit-tap-highlight-color:transparent; }
+
+  html, body{
+    height:100%;
+    background:var(--bg);
+    color:var(--text);
+    font-family:'Inter', sans-serif;
+    overflow:hidden;
+  }
+
+  body{
+    min-height: calc(var(--vh, 1vh) * 100);
+    display:flex;
+    flex-direction:column;
+  }
+
+  .display{ font-family:'Anton', sans-serif; text-transform:uppercase; }
+
+  .bg-noise{
+    position:fixed; inset:0; pointer-events:none; z-index:0;
+    background-image: radial-gradient(circle at 20% 15%, rgba(232,51,43,0.06), transparent 40%),
+                       radial-gradient(circle at 85% 80%, rgba(201,151,77,0.05), transparent 45%);
+  }
+
+  .screen{
+    position:relative; z-index:1;
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    padding:24px 28px;
+    text-align:center;
+    opacity:0;
+    transform:translateY(14px);
+    transition: opacity 0.7s ease, transform 0.7s ease;
+  }
+  .screen.in{ opacity:1; transform:translateY(0); }
+
+  .eyebrow{
+    font-size:11px;
+    letter-spacing:4px;
+    color:var(--red);
+    font-weight:700;
+    margin-bottom:18px;
+    opacity:0;
+    animation: fadeUp 0.6s ease forwards 0.15s;
+  }
+
+  .logo{
+    font-size:58px;
+    line-height:0.88;
+    font-weight:400;
+    background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="140" height="105" viewBox="0 0 140 105"><rect width="140" height="105" fill="%23c9974d"/><g fill="%233d2b1a"><ellipse cx="20" cy="18" rx="10" ry="7" transform="rotate(-12 20 18)"/><ellipse cx="60" cy="11" rx="8" ry="6" transform="rotate(8 60 11)"/><ellipse cx="102" cy="23" rx="11" ry="7" transform="rotate(20 102 23)"/><ellipse cx="16" cy="60" rx="9" ry="7" transform="rotate(30 16 60)"/><ellipse cx="53" cy="56" rx="10" ry="7" transform="rotate(-10 53 56)"/><ellipse cx="93" cy="64" rx="9" ry="7" transform="rotate(15 93 64)"/><ellipse cx="123" cy="52" rx="8" ry="6" transform="rotate(-20 123 52)"/><ellipse cx="35" cy="91" rx="10" ry="7" transform="rotate(5 35 91)"/><ellipse cx="76" cy="95" rx="9" ry="6" transform="rotate(-18 76 95)"/><ellipse cx="117" cy="89" rx="10" ry="7" transform="rotate(12 117 89)"/></g></svg>');
+    background-size:160px 120px;
+    -webkit-background-clip:text; background-clip:text; color:transparent;
+    opacity:0;
+    animation: fadeUp 0.6s ease forwards 0.3s;
+  }
+
+  .norules{
+    margin-top:26px;
+    font-size:32px;
+    line-height:0.9;
+    color:transparent;
+    -webkit-text-stroke:1.4px var(--text);
+    opacity:0;
+    animation: fadeUp 0.6s ease forwards 0.45s;
+  }
+
+  .sub{
+    margin-top:22px;
+    font-size:13px;
+    color:var(--text-dim);
+    max-width:250px;
+    line-height:1.6;
+    opacity:0;
+    animation: fadeUp 0.6s ease forwards 0.6s;
+  }
+
+  @keyframes fadeUp{
+    from{ opacity:0; transform:translateY(10px); }
+    to{ opacity:1; transform:translateY(0); }
+  }
+
+  .cta-block{
+    width:100%; max-width:320px;
+    margin-top:38px;
+    opacity:0;
+    animation: fadeUp 0.6s ease forwards 0.75s;
+  }
+
+  .btn{
+    width:100%;
+    border:none;
+    border-radius:100px;
+    padding:16px;
+    font-family:'Inter', sans-serif;
+    font-weight:700;
+    font-size:14px;
+    letter-spacing:0.3px;
+    display:flex; align-items:center; justify-content:center; gap:8px;
+    cursor:pointer;
+    transition: transform 0.15s ease, opacity 0.15s ease;
+  }
+  .btn:active{ transform:scale(0.97); }
+
+  .btn-primary{
+    background:var(--red);
+    color:#fff;
+  }
+  .btn-primary:disabled{ opacity:0.5; cursor:default; }
+
+  .btn-icon{ font-size:15px; }
+
+  .alt-link{
+    display:block;
+    margin-top:16px;
+    font-size:12px;
+    color:var(--text-faint);
+    text-decoration:underline;
+    text-underline-offset:2px;
+    background:none; border:none;
+    cursor:pointer;
+    font-family:inherit;
+  }
+
+  .code-panel{
+    width:100%; max-width:320px;
+    background:var(--panel);
+    border:1px solid var(--line);
+    border-radius:18px;
+    padding:20px;
+    margin-top:38px;
+    text-align:left;
+    display:none;
+    opacity:0;
+    transform:translateY(8px);
+    transition: opacity 0.35s ease, transform 0.35s ease;
+  }
+  .code-panel.show{ display:block; }
+  .code-panel.in{ opacity:1; transform:translateY(0); }
+
+  .code-panel h4{
+    font-size:11px; letter-spacing:1.5px; text-transform:uppercase;
+    color:var(--text-dim); margin-bottom:12px; font-weight:600;
+  }
+
+  .code-input-row{ display:flex; gap:8px; }
+
+  .code-input{
+    flex:1;
+    background:var(--panel2);
+    border:1px solid var(--line);
+    border-radius:10px;
+    padding:12px 14px;
+    font-size:15px;
+    letter-spacing:2px;
+    color:var(--text);
+    text-transform:uppercase;
+    font-family:'Inter', sans-serif;
+    font-weight:600;
+    outline:none;
+  }
+  .code-input:focus{ border-color:var(--tan); }
+  .code-input::placeholder{ color:var(--text-faint); letter-spacing:normal; font-weight:400; }
+
+  .code-go{
+    background:var(--text);
+    color:#0b0b0a;
+    border:none;
+    border-radius:10px;
+    padding:0 18px;
+    font-weight:700;
+    font-size:13px;
+    cursor:pointer;
+  }
+  .code-go:disabled{ opacity:0.4; }
+
+  .code-msg{
+    margin-top:12px;
+    font-size:12px;
+    min-height:16px;
+  }
+  .code-msg.error{ color:var(--red); }
+  .code-msg.success{ color:#7bc47b; }
+
+  .foot{
+    position:relative; z-index:1;
+    padding:18px 20px calc(18px + env(safe-area-inset-bottom, 0px));
+    text-align:center;
+    font-size:10px;
+    color:var(--text-faint);
+    letter-spacing:1.5px;
+  }
+
+  .success-overlay{
+    position:fixed; inset:0; z-index:10;
+    background:var(--bg);
+    display:flex; flex-direction:column; align-items:center; justify-content:center;
+    text-align:center; padding:0 30px;
+    opacity:0; pointer-events:none;
+    transition: opacity 0.4s ease;
+  }
+  .success-overlay.show{ opacity:1; pointer-events:auto; }
+  .success-mark{
+    width:64px; height:64px; border-radius:50%;
+    border:2px solid var(--tan);
+    display:flex; align-items:center; justify-content:center;
+    font-size:26px; color:var(--tan);
+    margin-bottom:20px;
+  }
+  .success-title{ font-size:20px; font-weight:800; margin-bottom:8px; }
+  .success-sub{ font-size:13px; color:var(--text-dim); max-width:240px; line-height:1.6; }
+</style>
+</head>
+<body>
+
+<div class="bg-noise"></div>
+
+<div class="screen" id="screen">
+  <div class="eyebrow">Закрытый фан-клуб</div>
+  <div class="logo display">SWAG<br>CLUB</div>
+  <div class="norules display">No rules</div>
+  <div class="sub">Ранний доступ к дропам, трекам и мерчу. Только для своих.</div>
+
+  <div class="cta-block">
+    <button class="btn btn-primary" id="tgLoginBtn">
+      <span class="btn-icon">→</span>
+      <span id="tgLoginText">Войти через Telegram</span>
+    </button>
+    <button class="alt-link" id="codeToggle">у меня есть код доступа</button>
+
+    <div class="code-panel" id="codePanel">
+      <h4>Код раннего доступа</h4>
+      <div class="code-input-row">
+        <input class="code-input" id="codeInput" placeholder="SWAG40" maxlength="12" autocomplete="off">
+        <button class="code-go" id="codeGo">OK</button>
+      </div>
+      <div class="code-msg" id="codeMsg"></div>
+    </div>
+  </div>
+</div>
+
+<div class="foot">SWAGCLUB.RU · ROLDOZZZER</div>
+
+<div class="success-overlay" id="successOverlay">
+  <div class="success-mark">✓</div>
+  <div class="success-title">Доступ открыт</div>
+  <div class="success-sub" id="successSub">Переходим в каталог раннего доступа</div>
+</div>
+
+<script>
+(function(){
+
+  function setVh(){
+    document.documentElement.style.setProperty('--vh', (window.innerHeight * 0.01) + 'px');
+  }
+  setVh();
+  window.addEventListener('resize', setVh);
+
+  var tg = window.Telegram ? window.Telegram.WebApp : null;
+  var tgUser = null;
+
+  if (tg) {
+    tg.ready();
+    tg.expand();
+    try { tg.setHeaderColor('#0b0b0a'); } catch(e){}
+    try { tg.setBackgroundColor('#0b0b0a'); } catch(e){}
+    tgUser = tg.initDataUnsafe && tg.initDataUnsafe.user ? tg.initDataUnsafe.user : null;
+  }
+
+  var loginBtn = document.getElementById('tgLoginBtn');
+  var loginText = document.getElementById('tgLoginText');
+
+  if (tgUser) {
+    loginText.textContent = 'Продолжить как ' + (tgUser.first_name || 'гость');
+  }
+
+  var screen = document.getElementById('screen');
+  requestAnimationFrame(function(){
+    setTimeout(function(){ screen.classList.add('in'); }, 30);
+  });
+
+  loginBtn.addEventListener('click', function(){
+    if (tg) {
+      if (tg.HapticFeedback) tg.HapticFeedback.impactOccurred('light');
+      goToApp({ via: 'telegram', user: tgUser });
+    } else {
+      window.open('https://t.me/swagclub_bot?start=login', '_blank');
+    }
+  });
+
+  var codeToggle = document.getElementById('codeToggle');
+  var codePanel  = document.getElementById('codePanel');
+  var codeInput  = document.getElementById('codeInput');
+  var codeGo     = document.getElementById('codeGo');
+  var codeMsg    = document.getElementById('codeMsg');
+
+  codeToggle.addEventListener('click', function(){
+    var opening = !codePanel.classList.contains('show');
+    if (opening) {
+      codePanel.classList.add('show');
+      requestAnimationFrame(function(){ codePanel.classList.add('in'); });
+      codeToggle.textContent = 'скрыть';
+      codeInput.focus();
+    } else {
+      codePanel.classList.remove('in');
+      codeToggle.textContent = 'у меня есть код доступа';
+      setTimeout(function(){ codePanel.classList.remove('show'); }, 300);
+    }
+  });
+
+  var VALID_CODES = {
+    'SWAG40':   'Капсульный дроп SWAG × ROLDOZZZER',
+    'LEOPARD1': 'Первая леопардовая коллекция'
+  };
+
+  codeInput.addEventListener('input', function(){
+    codeInput.value = codeInput.value.toUpperCase();
+    codeMsg.textContent = '';
+    codeMsg.className = 'code-msg';
+  });
+
+  codeInput.addEventListener('keydown', function(e){
+    if (e.key === 'Enter') submitCode();
+  });
+  codeGo.addEventListener('click', submitCode);
+
+  function submitCode(){
+    var val = codeInput.value.trim();
+    if (!val) {
+      codeMsg.textContent = 'Введите код';
+      codeMsg.className = 'code-msg error';
+      return;
+    }
+
+    codeGo.disabled = true;
+    codeMsg.textContent = 'Проверяем…';
+    codeMsg.className = 'code-msg';
+
+    setTimeout(function(){
+      codeGo.disabled = false;
+      var dropName = VALID_CODES[val];
+
+      if (dropName) {
+        codeMsg.textContent = 'Код принят';
+        codeMsg.className = 'code-msg success';
+        if (tg && tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('success');
+        goToApp({ via: 'code', code: val, drop: dropName });
+      } else {
+        codeMsg.textContent = 'Такой код не найден';
+        codeMsg.className = 'code-msg error';
+        if (tg && tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('error');
+      }
+    }, 500);
+  }
+
+  var overlay = document.getElementById('successOverlay');
+  var successSub = document.getElementById('successSub');
+
+  function goToApp(context){
+    if (context.drop) {
+      successSub.textContent = 'Открываем: ' + context.drop;
+    } else {
+      successSub.textContent = 'Переходим в каталог раннего доступа';
+    }
+    overlay.classList.add('show');
+
+    setTimeout(function(){
+      // Replace with real navigation, e.g.:
+      // window.location.href = '/catalog.html' + (context.code ? ('?code=' + context.code) : '');
+      console.log('Navigate to app with context:', context);
+    }, 1400);
+  }
+
+})();
+</script>
+
+</body>
+</html>
