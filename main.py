@@ -14,7 +14,6 @@ from aiogram.types import (
 )
 from aiogram.webhook.aiohttp_server import SimpleRequestHandler, setup_application
 
-# cnfg
 BOT_TOKEN = os.getenv("BOT_TOKEN", "8860971431:AAH3FMBFI_8SydrjDAOUapNdVnOrgSemDmM")
 BASE_URL = os.getenv("BASE_URL", "https://swagclubea-bot.onrender.com").rstrip("/")
 WEBAPP_URL = os.getenv(
@@ -59,6 +58,7 @@ async def cmd_start(message: Message) -> None:
         reply_markup=kb,
     )
 
+
 @dp.message(F.web_app_data)
 async def handle_web_app_data(message: Message) -> None:
     try:
@@ -76,7 +76,7 @@ async def handle_web_app_data(message: Message) -> None:
                 parse_mode="Markdown"
             )
         else:
-            user_name = message.from_user.first_name
+            user_name = message.from_user.first_name if message.from_user else "друг"
             await message.answer(
                 f"**Добро пожаловать в закрытый фан-клуб, {user_name}!**\n\n"
                 f"Вы успешно авторизовались.",
@@ -93,25 +93,16 @@ async def fallback(message: Message) -> None:
 
 
 async def on_startup(app: web.Application) -> None:
-    if not BASE_URL:
-        log.warning("BASE_URL не задан, вебхук не зарегистрирован!")
-        return
-
-    try:
-        await bot.set_webhook(
-            WEBHOOK_URL,
-            drop_pending_updates=True,
-        )
-        log.info("Webhook успешно установлен: %s", WEBHOOK_URL)
-    except Exception as e:
-        log.error("Ошибка при установке Webhook: %s", e)
+    log.info("Установка Webhook на адрес: %s", WEBHOOK_URL)
+    await bot.set_webhook(
+        url=WEBHOOK_URL,
+        drop_pending_updates=True
+    )
 
 
 async def on_shutdown(app: web.Application) -> None:
-    try:
-        log.info("Остановка приложения...")
-    except Exception as e:
-        log.error("Ошибка при остановке: %s", e)
+    log.info("Завершение работы: закрываем сессию бота...")
+    await bot.session.close()
 
 
 async def health(request: web.Request) -> web.Response:
@@ -128,7 +119,12 @@ def create_app() -> web.Application:
     else:
         log.warning("Папка WEB не найдена! WebApp не сможет загрузить HTML.")
 
-    SimpleRequestHandler(dispatcher=dp, bot=bot).register(app, path=WEBHOOK_PATH)
+    webhook_requests_handler = SimpleRequestHandler(
+        dispatcher=dp,
+        bot=bot,
+    )
+    webhook_requests_handler.register(app, path=WEBHOOK_PATH)
+
     setup_application(app, dp, bot=bot)
 
     app.on_startup.append(on_startup)
