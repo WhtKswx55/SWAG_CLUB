@@ -16,12 +16,12 @@ from aiogram.webhook.aiohttp_server import SimpleRequestHandler, setup_applicati
 
 BOT_TOKEN = os.getenv("BOT_TOKEN", "8860971431:AAH3FMBFI_8SydrjDAOUapNdVnOrgSemDmM")
 
-BASE_URL = os.getenv("BASE_URL", "").rstrip("/")
+BASE_URL = os.getenv("BASE_URL", "https://swagclubea-bot.onrender.com").rstrip("/")
 
-WEBAPP_URL = os.getenv("WEBAPP_URL", "https://your-app.vercel.app")
+WEBAPP_URL = os.getenv("WEBAPP_URL", "https://swagclubea-bot.onrender.com/WEB/index.html")
 
 ADMIN_IDS = [
-    int(x) for x in os.getenv("ADMIN_IDS", "").split("7240769536,") if x.strip().isdigit()
+    int(x) for x in os.getenv("ADMIN_IDS", "7240769536").split(",") if x.strip().isdigit()
 ]
 WEBHOOK_PATH = f"/webhook/{BOT_TOKEN}"
 WEBHOOK_URL = f"{BASE_URL}{WEBHOOK_PATH}"
