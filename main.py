@@ -12,7 +12,7 @@ from aiogram.types import (
     WebAppInfo,
 )
 
-BOT_TOKEN = os.getenv("8860971431:AAH3FMBFI_8SydrjDAOUapNdVnOrgSemDmM")
+BOT_TOKEN = os.getenv("BOT_TOKEN", "8860971431:AAH3FMBFI_8SydrjDAOUapNdVnOrgSemDmM")
 BASE_URL = os.getenv("BASE_URL", "https://swagclubea-bot.onrender.com").rstrip("/")
 WEBAPP_URL = os.getenv(
     "WEBAPP_URL", "https://swagclubea-bot.onrender.com/WEB/index.html"
