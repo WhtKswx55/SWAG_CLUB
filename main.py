@@ -17,7 +17,7 @@ from aiogram.webhook.aiohttp_server import SimpleRequestHandler, setup_applicati
 BOT_TOKEN = os.getenv("BOT_TOKEN", "8860971431:AAH3FMBFI_8SydrjDAOUapNdVnOrgSemDmM")
 BASE_URL = os.getenv("BASE_URL", "https://swagclubea-bot.onrender.com").rstrip("/")
 WEBAPP_URL = os.getenv(
-    "WEBAPP_URL", "https://swagclubea-bot.onrender.com/WEB/index.html"
+    "WEBAPP_URL", "https://swagclubea-bot.onrender.com/WEB/index2.html"
 )
 
 ADMIN_IDS = [
