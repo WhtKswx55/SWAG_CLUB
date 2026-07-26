@@ -101,6 +101,7 @@
     position: relative;
     z-index: 2;
     display: block;
+    mix-blend-mode: multiply;
   }
 
   .scribble{
@@ -114,7 +115,7 @@
     align-self:flex-end; text-align:right; margin-left:auto; margin-right:6%;
     opacity:0; animation: fadeUp 0.6s ease forwards 0.42s;
   }
-    .norules span{
+  .norules span{
     color: var(--text);
     border-bottom: 2px solid var(--accent);
     padding-bottom: 1px;
@@ -152,7 +153,7 @@
   .btn-arrow{ font-size:14px; }
 
   .alt-link{
-    display:block; margin-top:16px; font-family:'JetBrains Mono', monospace;
+    display:block; margin: 16px auto 0; font-family:'JetBrains Mono', monospace;
     font-size:11px; color:var(--text-dim); text-decoration:underline; text-underline-offset:3px;
     background:none; border:none; cursor:pointer; letter-spacing:0.5px;
     margin-left: 56px;
@@ -271,23 +272,38 @@
 
 <script>
 (function(){
-
-  function setVh(){ document.documentElement.style.setProperty('--vh', (window.innerHeight * 0.01) + 'px'); }
+  function setVh(){
+    document.documentElement.style.setProperty('--vh', (window.innerHeight * 0.01) + 'px');
+  }
   setVh();
   window.addEventListener('resize', setVh);
 
   var track = document.getElementById('marqueeTrack');
-  track.innerHTML += track.innerHTML;
+  if (track) track.innerHTML += track.innerHTML;
 
-  var tg = window.Telegram ? window.Telegram.WebApp : null;
+  var tg = window.Telegram && window.Telegram.WebApp ? window.Telegram.WebApp : null;
   var tgUser = null;
 
   if (tg) {
-    tg.ready();
-    tg.expand();
-    try { tg.setHeaderColor('#f5f4ef'); } catch(e){}
-    try { tg.setBackgroundColor('#f5f4ef'); } catch(e){}
-    tgUser = tg.initDataUnsafe && tg.initDataUnsafe.user ? tg.initDataUnsafe.user : null;
+    try {
+      tg.ready();
+      tg.expand();
+      if (tg.setHeaderColor) tg.setHeaderColor('#f5f4ef');
+      if (tg.setBackgroundColor) tg.setBackgroundColor('#f5f4ef');
+      if (tg.initDataUnsafe && tg.initDataUnsafe.user) {
+        tgUser = tg.initDataUnsafe.user;
+      }
+    } catch(e) {
+      console.warn("Telegram WebApp init:", e);
+    }
+  }
+
+  // Гарантированное добавление класса видимости
+  var screen = document.getElementById('screen');
+  if (screen) {
+    setTimeout(function(){
+      screen.classList.add('in');
+    }, 100);
   }
 
   var loginBtn = document.getElementById('tgLoginBtn');
@@ -297,21 +313,22 @@
     return typeof name === 'string' && name.trim().length >= 2 && /[a-zA-Zа-яА-ЯёЁ]/.test(name);
   }
 
-  if (tgUser && isUsableName(tgUser.first_name)) {
+  if (tgUser && isUsableName(tgUser.first_name) && loginText) {
     loginText.textContent = 'Продолжить как ' + tgUser.first_name;
   }
 
-  var screen = document.getElementById('screen');
-  requestAnimationFrame(function(){ setTimeout(function(){ screen.classList.add('in'); }, 30); });
-
-  loginBtn.addEventListener('click', function(){
-    if (tg) {
-      if (tg.HapticFeedback) tg.HapticFeedback.impactOccurred('light');
-      goToApp({ via: 'telegram', user: tgUser });
-    } else {
-      window.open('https://t.me/swagclub_bot?start=login', '_blank');
-    }
-  });
+  if (loginBtn) {
+    loginBtn.addEventListener('click', function(){
+      if (tg) {
+        try {
+          if (tg.HapticFeedback) tg.HapticFeedback.impactOccurred('light');
+        } catch(e){}
+        goToApp({ via: 'telegram', user: tgUser });
+      } else {
+        window.open('https://t.me/swagclub_bot?start=login', '_blank');
+      }
+    });
+  }
 
   var codeToggle = document.getElementById('codeToggle');
   var codePanel  = document.getElementById('codePanel');
@@ -319,56 +336,68 @@
   var codeGo     = document.getElementById('codeGo');
   var codeMsg    = document.getElementById('codeMsg');
 
-  codeToggle.addEventListener('click', function(){
-    var opening = !codePanel.classList.contains('show');
-    if (opening) {
-      codePanel.classList.add('show');
-      requestAnimationFrame(function(){ codePanel.classList.add('in'); });
-      codeToggle.textContent = '[ скрыть ]';
-      codeInput.focus();
-    } else {
-      codePanel.classList.remove('in');
-      codeToggle.textContent = '[ у меня есть код доступа ]';
-      setTimeout(function(){ codePanel.classList.remove('show'); }, 300);
-    }
-  });
+  if (codeToggle && codePanel) {
+    codeToggle.addEventListener('click', function(){
+      var opening = !codePanel.classList.contains('show');
+      if (opening) {
+        codePanel.classList.add('show');
+        setTimeout(function(){ codePanel.classList.add('in'); }, 20);
+        codeToggle.textContent = '[ скрыть ]';
+        if (codeInput) codeInput.focus();
+      } else {
+        codePanel.classList.remove('in');
+        codeToggle.textContent = '[ у меня есть код доступа ]';
+        setTimeout(function(){ codePanel.classList.remove('show'); }, 300);
+      }
+    });
+  }
 
   var VALID_CODES = {
     'SWAG40':   'Капсульный дроп SWAG × ROLDOZZZER',
     'LEOPARD1': 'Первая леопардовая коллекция'
   };
 
-  codeInput.addEventListener('input', function(){
-    codeInput.value = codeInput.value.toUpperCase();
-    codeMsg.textContent = '';
-    codeMsg.className = 'code-msg';
-  });
-  codeInput.addEventListener('keydown', function(e){ if (e.key === 'Enter') submitCode(); });
-  codeGo.addEventListener('click', submitCode);
+  if (codeInput) {
+    codeInput.addEventListener('input', function(){
+      codeInput.value = codeInput.value.toUpperCase();
+      if (codeMsg) {
+        codeMsg.textContent = '';
+        codeMsg.className = 'code-msg';
+      }
+    });
+    codeInput.addEventListener('keydown', function(e){ if (e.key === 'Enter') submitCode(); });
+  }
+
+  if (codeGo) codeGo.addEventListener('click', submitCode);
 
   function submitCode(){
+    if (!codeInput || !codeMsg) return;
     var val = codeInput.value.trim();
     if (!val) {
       codeMsg.textContent = 'Введите код';
       codeMsg.className = 'code-msg error';
       return;
     }
-    codeGo.disabled = true;
+    if (codeGo) codeGo.disabled = true;
     codeMsg.textContent = 'Проверяем…';
     codeMsg.className = 'code-msg';
 
     setTimeout(function(){
-      codeGo.disabled = false;
+      if (codeGo) codeGo.disabled = false;
       var dropName = VALID_CODES[val];
       if (dropName) {
         codeMsg.textContent = 'Код принят';
         codeMsg.className = 'code-msg success';
-        if (tg && tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('success');
+        try {
+          if (tg && tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('success');
+        } catch(e){}
         goToApp({ via: 'code', code: val, drop: dropName });
       } else {
         codeMsg.textContent = 'Такой код не найден';
         codeMsg.className = 'code-msg error';
-        if (tg && tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('error');
+        try {
+          if (tg && tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('error');
+        } catch(e){}
       }
     }, 500);
   }
@@ -377,13 +406,16 @@
   var successSub = document.getElementById('successSub');
 
   function goToApp(context){
-    successSub.textContent = context.drop ? ('Открываем: ' + context.drop) : 'Переходим в каталог раннего доступа';
-    overlay.classList.add('show');
+    if (successSub) {
+      successSub.textContent = context.drop ? ('Открываем: ' + context.drop) : 'Переходим в каталог раннего доступа';
+    }
+    if (overlay) overlay.classList.add('show');
     setTimeout(function(){
-      console.log('Navigate to app with context:', context);
+      if (tg && tg.sendData) {
+        tg.sendData(JSON.stringify(context));
+      }
     }, 1400);
   }
-
 })();
 </script>
 
