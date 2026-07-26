@@ -59,8 +59,6 @@ async def cmd_start(message: Message) -> None:
         reply_markup=kb,
     )
 
-
-# === НОВЫЙ БЛОК: ОБРАБОТКА ДАННЫХ ИЗ WEBAPP ===
 @dp.message(F.web_app_data)
 async def handle_web_app_data(message: Message) -> None:
     try:
@@ -80,7 +78,7 @@ async def handle_web_app_data(message: Message) -> None:
         else:
             user_name = message.from_user.first_name
             await message.answer(
-                f"🔥 **Добро пожаловать в закрытый фан-клуб, {user_name}!**\n\n"
+                f"**Добро пожаловать в закрытый фан-клуб, {user_name}!**\n\n"
                 f"Вы успешно авторизовались.",
                 parse_mode="Markdown"
             )
@@ -111,10 +109,9 @@ async def on_startup(app: web.Application) -> None:
 
 async def on_shutdown(app: web.Application) -> None:
     try:
-        await bot.delete_webhook()
-        log.info("Webhook удален")
+        log.info("Остановка приложения...")
     except Exception as e:
-        log.error("Ошибка при удалении Webhook: %s", e)
+        log.error("Ошибка при остановке: %s", e)
 
 
 async def health(request: web.Request) -> web.Response:
