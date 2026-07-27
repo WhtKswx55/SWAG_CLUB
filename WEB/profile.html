@@ -3,12 +3,12 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>SWAG CLUB — Профиль</title>
+<title>SWAG CLUB — Профиль Подписчика</title>
 
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;600;700&display=swap" rel="stylesheet">
 
 <style>
   :root{
@@ -30,6 +30,13 @@
   body{ min-height:calc(var(--vh,1vh) * 100); display:flex; flex-direction:column; position:relative; }
 
   .mono{ font-family:'JetBrains Mono', monospace; }
+  .display{ font-family:'Anton', sans-serif; text-transform:uppercase; }
+
+  .bg-text-pattern{
+    position:fixed; inset:0; z-index:0; pointer-events:none; opacity:0.035;
+    background-image:url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="220" height="110" viewBox="0 0 220 110"><text x="10" y="60" fill="%231a1917" font-family="Anton, Impact, sans-serif" font-weight="900" font-size="26" letter-spacing="1" transform="rotate(-15 110 55)">SWAG CLUB</text></svg>');
+    background-repeat:repeat;
+  }
 
   .bg-grain{
     position:fixed; inset:0; z-index:0; pointer-events:none; opacity:0.06; mix-blend-mode:multiply;
@@ -79,7 +86,7 @@
   .screen{
     position:relative; z-index:1; flex:1;
     display:flex; flex-direction:column; align-items:center;
-    padding:28px 24px 20px; overflow-y:auto;
+    padding:22px 20px 24px; overflow-y:auto;
     opacity:0; transform:translateY(14px); transition: opacity 0.5s ease, transform 0.5s ease;
   }
   .screen.in{ opacity:1; transform:translateY(0); }
@@ -90,107 +97,99 @@
   .eyebrow{
     font-family:'JetBrains Mono', monospace;
     font-size:10px; letter-spacing:2px; font-weight:600; color:var(--text-faint);
-    text-align:center; margin-bottom:16px;
-    opacity:0; animation: fadeUp 0.6s ease forwards 0.1s;
+    text-align:center; margin-bottom:14px;
   }
   .eyebrow b{ color:var(--accent); }
 
-  /* Карточка профиля в стиле строгой клубной карты */
   .profile-card{
-    background:var(--panel); border:1px solid var(--line); border-radius:2px;
-    padding:16px; margin-bottom:16px; text-align:left;
-    opacity:0; animation: fadeUp 0.6s ease forwards 0.2s;
+    background:var(--panel); border:1px solid var(--text); border-radius:2px;
+    padding:18px; position:relative; overflow:hidden; margin-bottom:14px;
+    box-shadow: 4px 4px 0px var(--line);
   }
-  .user-header{ display:flex; align-items:center; gap:14px; }
+  .profile-card::after{
+    content:'SWAG MEMBER'; position:absolute; bottom:-12px; right:-8px;
+    font-family:'Anton', sans-serif; font-size:40px; color:var(--panel2);
+    z-index:0; pointer-events:none; opacity:0.6; line-height:1;
+  }
+
+  .user-header{ display:flex; align-items:center; gap:14px; position:relative; z-index:1; }
   .user-avatar{
-    width:50px; height:50px; border-radius:50%; background:var(--panel2);
-    border:1px solid var(--line); display:flex; align-items:center; justify-content:center;
-    font-family:'Oswald', sans-serif; font-size:22px; color:var(--text); flex-shrink:0;
+    width:52px; height:52px; border-radius:50%; background:var(--panel2);
+    border:1px solid var(--text); display:flex; align-items:center; justify-content:center;
+    font-family:'Anton', sans-serif; font-size:22px; color:var(--text); flex-shrink:0;
     overflow:hidden;
   }
   .user-avatar img{ width:100%; height:100%; object-fit:cover; }
 
-  .user-info{ flex:1; min-width:0; }
-  .user-name{ font-family:'Oswald', sans-serif; font-weight:700; font-size:22px; line-height:1; text-transform:uppercase; color:var(--text); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
-  .user-meta{ font-size:11px; color:var(--text-faint); margin-top:4px; letter-spacing:0.5px; }
+  .user-info{ flex:1; min-width:0; text-align:left; }
+  .user-name{ font-family:'Anton', sans-serif; font-size:20px; line-height:1.1; text-transform:uppercase; color:var(--text); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .user-meta{ font-size:11px; color:var(--text-dim); margin-top:2px; }
 
-  .card-footer{
-    margin-top:14px; padding-top:12px; border-top:1px dashed var(--line);
-    display:flex; align-items:center; justify-content:space-between;
-  }
+  .badge-row{ margin-top:14px; display:flex; align-items:center; justify-content:space-between; position:relative; z-index:1; }
   .status-badge{
     display:inline-flex; align-items:center; gap:6px;
     background:var(--accent); color:#fff; padding:4px 8px; border-radius:2px;
-    font-family:'JetBrains Mono', monospace; font-size:9px; font-weight:700; letter-spacing:1px;
+    font-family:'JetBrains Mono', monospace; font-size:9.5px; font-weight:700; letter-spacing:1px;
     text-transform:uppercase;
   }
+  .status-badge.inactive{ background:var(--text-dim); }
   .status-dot{ width:5px; height:5px; border-radius:50%; background:#fff; animation: blink 1.2s infinite; }
   @keyframes blink{ 0%, 100%{ opacity:1; } 50%{ opacity:0.2; } }
 
   .member-id{ font-family:'JetBrains Mono', monospace; font-size:10px; color:var(--text-faint); font-weight:600; }
 
-  .divider{
-    width:100%; height:1px; margin:4px auto 16px;
-    background: repeating-linear-gradient(90deg, var(--line) 0 6px, transparent 6px 12px);
-    opacity:0; animation: fadeUp 0.6s ease forwards 0.3s;
+  .sub-timer-box{
+    background:var(--panel); border:1px solid var(--line); border-radius:2px; padding:14px;
+    margin-bottom:16px; text-align:left;
   }
+  .sub-timer-header{ display:flex; justify-content:space-between; font-family:'JetBrains Mono', monospace; font-size:10px; color:var(--text-dim); font-weight:700; margin-bottom:6px; text-transform:uppercase; }
+  .sub-timer-val{ color:var(--accent); font-weight:700; }
+  .progress-bar{ width:100%; height:6px; background:var(--panel2); border-radius:3px; overflow:hidden; border:1px solid var(--line); }
+  .progress-fill{ height:100%; background:var(--accent); width:76%; transition: width 0.5s ease; }
+  .sub-timer-sub{ font-family:'JetBrains Mono', monospace; font-size:9px; color:var(--text-faint); margin-top:6px; }
 
-  /* Строчный список с пунктирными разделителями в эстетике каталога */
-  .info-list{
-    width:100%; margin-bottom:20px;
-    opacity:0; animation: fadeUp 0.6s ease forwards 0.4s;
+  .level-box{
+    background:var(--panel); border:1px solid var(--line); border-radius:2px; padding:14px; margin-bottom:16px; text-align:left;
   }
-  .info-row{
-    padding:14px 2px; border-bottom:1px dashed var(--line); text-align:left;
+  .level-head{ display:flex; justify-content:space-between; align-items:center; }
+  .level-title{ font-family:'Anton', sans-serif; font-size:18px; color:var(--text); text-transform:uppercase; }
+  .level-badge{ font-family:'JetBrains Mono', monospace; font-size:9px; font-weight:700; background:var(--text); color:var(--bg); padding:3px 6px; border-radius:2px; }
+  .level-desc{ font-family:'JetBrains Mono', monospace; font-size:10px; color:var(--text-dim); margin-top:6px; line-height:1.4; }
+
+  .code-card{
+    background:var(--panel2); border:1px dashed var(--line); border-radius:2px; padding:12px 14px;
+    margin-bottom:16px; text-align:left;
   }
-  .info-list .info-row:first-child{ border-top:1px dashed var(--line); }
+  .code-title{ font-family:'JetBrains Mono', monospace; font-size:10px; color:var(--text-faint); text-transform:uppercase; }
+  .code-row{ display:flex; align-items:center; justify-content:space-between; margin-top:4px; }
+  .code-value{ font-family:'JetBrains Mono', monospace; font-size:13px; font-weight:700; color:var(--text); letter-spacing:1px; }
+  .code-status{ font-family:'JetBrains Mono', monospace; font-size:9px; color:#2b8a3e; font-weight:700; text-transform:uppercase; }
 
-  .info-head{ display:flex; justify-content:space-between; align-items:baseline; margin-bottom:4px; }
-  .info-label{ font-family:'JetBrains Mono', monospace; font-size:10px; color:var(--text-faint); letter-spacing:1px; text-transform:uppercase; font-weight:600; }
-  .info-value-main{ font-family:'JetBrains Mono', monospace; font-size:11px; font-weight:700; color:var(--accent); text-transform:uppercase; }
-
-  .info-title{ font-family:'Oswald', sans-serif; font-size:18px; font-weight:700; color:var(--text); text-transform:uppercase; line-height:1.1; margin-top:2px; }
-  .info-sub{ font-size:11px; color:var(--text-dim); margin-top:4px; line-height:1.4; }
-
-  /* Блок ввода промокода */
   .promo-box{
-    background:var(--panel); border:1px solid var(--line); border-radius:2px;
-    padding:14px; margin-bottom:20px; text-align:left;
-    opacity:0; animation: fadeUp 0.6s ease forwards 0.5s;
+    background:var(--panel); border:1px solid var(--line); border-radius:2px; padding:14px; margin-bottom:16px; text-align:left;
   }
-  .promo-box label{ display:block; font-family:'JetBrains Mono', monospace; font-size:10px; color:var(--text-faint); text-transform:uppercase; margin-bottom:8px; font-weight:600; letter-spacing:1px; }
+  .promo-box label{ display:block; font-family:'JetBrains Mono', monospace; font-size:10px; color:var(--text-dim); text-transform:uppercase; margin-bottom:8px; font-weight:600; }
   .promo-row{ display:flex; gap:8px; }
   .promo-input{
-    flex:1; background:var(--panel2); border:1px solid var(--line); border-radius:2px; padding:10px 12px;
+    flex:1; background:var(--bg); border:1px solid var(--line); border-radius:2px; padding:10px 12px;
     font-family:'JetBrains Mono', monospace; font-size:12px; font-weight:700; color:var(--text); text-transform:uppercase; outline:none;
   }
   .promo-input:focus{ border-color:var(--accent); }
-  .promo-input::placeholder{ color:var(--text-faint); font-weight:400; }
   .promo-submit{
-    background:var(--text); color:var(--bg); border:none; border-radius:2px; padding:0 16px;
+    background:var(--text); color:var(--bg); border:none; border-radius:2px; padding:0 14px;
     font-family:'JetBrains Mono', monospace; font-size:11px; font-weight:700; cursor:pointer;
-    transition: background 0.15s ease;
   }
-  .promo-submit:active{ background:var(--accent); }
   .promo-msg{ font-family:'JetBrains Mono', monospace; font-size:10px; margin-top:8px; min-height:14px; }
-  .promo-msg.ok{ color:#2b8a3e; font-weight:600; }
-  .promo-msg.err{ color:var(--accent); font-weight:600; }
+  .promo-msg.ok{ color:#2b8a3e; }
+  .promo-msg.err{ color:var(--accent); }
 
-  /* Кнопка действия */
-  .action-block{
-    width:100%; opacity:0; animation: fadeUp 0.6s ease forwards 0.6s;
+  .btn-renew{
+    width:100%; border:none; background:var(--text); color:#fff; padding:14px; border-radius:2px;
+    font-family:'JetBrains Mono', monospace; font-size:12px; font-weight:700;
+    cursor:pointer; text-transform:uppercase; letter-spacing:1px; margin-bottom:10px;
+    transition: transform 0.15s ease;
   }
-  .btn{
-    width:100%; border-radius:2px; padding:16px;
-    font-family:'JetBrains Mono', monospace; font-weight:700; font-size:12px; letter-spacing:1px;
-    display:flex; align-items:center; justify-content:center; gap:10px; cursor:pointer;
-    text-transform:uppercase; border:none;
-    transition: transform 0.15s ease, background 0.15s ease;
-  }
-  .btn:active{ transform:scale(0.97); }
-  .btn-primary{ background:var(--text); color:var(--bg); border:1px solid var(--text); }
-
-  @keyframes fadeUp{ from{ opacity:0; transform:translateY(10px); } to{ opacity:1; transform:translateY(0); } }
+  .btn-renew:active{ transform:scale(0.97); }
 
   .foot{
     position:relative; z-index:1; padding:10px 20px calc(14px + env(safe-area-inset-bottom,0px));
@@ -202,6 +201,7 @@
 </head>
 <body>
 
+<div class="bg-text-pattern"></div>
 <div class="bg-grain"></div>
 <div class="bg-vignette"></div>
 
@@ -227,7 +227,6 @@
     
     <div class="eyebrow">[ <b>SWAG MEMBER</b> × CARD ]</div>
 
-    <!-- Карточка пользователя -->
     <div class="profile-card">
       <div class="user-header">
         <div class="user-avatar" id="avatarBox">S</div>
@@ -237,7 +236,7 @@
         </div>
       </div>
 
-      <div class="card-footer">
+      <div class="badge-row">
         <div class="status-badge" id="statusBadge">
           <span class="status-dot"></span>
           <span id="statusText">EARLY ACCESS</span>
@@ -246,39 +245,35 @@
       </div>
     </div>
 
-    <div class="divider"></div>
-
-    <!-- Детали профиля в стиле строк каталога -->
-    <div class="info-list">
-      
-      <div class="info-row">
-        <div class="info-head">
-          <span class="info-label">СТАТУС ПОДПИСКИ</span>
-          <span class="info-value-main" id="daysLeftText">ОСТАЛОСЬ 23 ДНЯ</span>
-        </div>
-        <div class="info-sub mono" id="subEndDate">Активна до: 27.08.2026</div>
+    <div class="sub-timer-box" id="subTimerBox">
+      <div class="sub-timer-header">
+        <span>Статус подписки:</span>
+        <span class="sub-timer-val" id="daysLeftText">Осталось 23 дня</span>
       </div>
-
-      <div class="info-row">
-        <div class="info-head">
-          <span class="info-label">УРОВЕНЬ КЛУБА</span>
-          <span class="info-label" style="color:var(--text-dim)">2 МЕСЯЦА</span>
-        </div>
-        <div class="info-title">LVL 2: DROP HUNTER</div>
-        <div class="info-sub">Ранний выкуп за 14 дней + гарантированная бронь низких серийных номеров (#001–#010).</div>
+      <div class="progress-bar">
+        <div class="progress-fill" id="progressFill"></div>
       </div>
-
-      <div class="info-row">
-        <div class="info-head">
-          <span class="info-label">ПРИВЯЗАННЫЙ КОД</span>
-          <span class="info-label" style="color:#2b8a3e; font-weight:700;">АКТИВЕН</span>
-        </div>
-        <div class="info-title mono" style="font-size:15px; margin-top:4px;" id="boundCodeVal">SWAG-849204-X7</div>
-      </div>
-
+      <div class="sub-timer-sub" id="subEndDate">Активна до: 27.08.2026 (Ранний доступ открыт)</div>
     </div>
 
-    <!-- Активация кода -->
+    <div class="level-box">
+      <div class="level-head">
+        <div class="level-title">LVL 2: DROP HUNTER</div>
+        <div class="level-badge">2 МЕСЯЦА В КЛУБЕ</div>
+      </div>
+      <div class="level-desc">
+        Привилегии: Ранний выкуп за 14 дней + гарантированная бронь низких серийных номеров мерча (#001–#010).
+      </div>
+    </div>
+
+    <div class="code-card">
+      <div class="code-title">Привязанный код подписки</div>
+      <div class="code-row">
+        <div class="code-value" id="boundCodeVal">SWAG-849204-X7</div>
+        <div class="code-status">ПРИВЯЗАН К ID</div>
+      </div>
+    </div>
+
     <div class="promo-box">
       <label>Ввести новый код подписки</label>
       <div class="promo-row">
@@ -288,13 +283,7 @@
       <div class="promo-msg" id="promoMsg"></div>
     </div>
 
-    <!-- Главное действие -->
-    <div class="action-block">
-      <button class="btn btn-primary" id="renewSubBtn">
-        <span>Продлить подписку в боте</span>
-        <span style="font-size:14px;">→</span>
-      </button>
-    </div>
+    <button class="btn-renew" id="renewSubBtn">Продлить подписку в боте →</button>
 
   </div>
 </div>
