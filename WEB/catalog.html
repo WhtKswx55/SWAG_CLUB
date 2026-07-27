@@ -185,7 +185,6 @@
 
 <script>
 (function(){
-
   function setVh(){ document.documentElement.style.setProperty('--vh', (window.innerHeight * 0.01) + 'px'); }
   setVh();
   window.addEventListener('resize', setVh);
@@ -200,59 +199,70 @@
       tg.expand();
       if (tg.setHeaderColor) tg.setHeaderColor('#f5f4ef');
       if (tg.setBackgroundColor) tg.setBackgroundColor('#f5f4ef');
+      
+      if (tg.BackButton) {
+        tg.BackButton.hide();
+      }
     } catch(e){ console.warn('Telegram WebApp init:', e); }
   }
+
+  var urlParams = new URLSearchParams(window.location.search);
+  var currentQuery = urlParams.toString() ? ('?' + urlParams.toString()) : '';
 
   var screen = document.getElementById('screen');
   if (screen) setTimeout(function(){ screen.classList.add('in'); }, 100);
 
+  function navigateTo(url) {
+    if (tg && tg.HapticFeedback) {
+      try { tg.HapticFeedback.impactOccurred('light'); } catch(e){}
+    }
+    if (screen) {
+      screen.classList.remove('in');
+    }
+    setTimeout(function() {
+      window.location.href = url;
+    }, 250);
+  }
+
   var CATEGORIES = [
-    { slug: 'hapapovsk', name: 'Хапаровск',            meta: 'ДРОП 02',           hot:false  },
-    { slug: 'norules',   name: 'No Rules',              meta: 'NEW',  hot:false },
-    { slug: 'magbottle', name: 'MagBottle',              meta: 'NEW',         hot:false },
-    { slug: 'semeyniki', name: 'Ох**ые семейники',     meta: 'ДМИТРИЙ АРНОЛЬД',               hot:false  },
-    { slug: 'accessories', name: 'Аксессуары',           meta: 'ПАТЧИ И МЕЛОЧЬ',    hot:false },
-    { slug: 'other',     name: 'Другое',                 meta: 'ДРОП 01',     hot:false }
+    { slug: 'hapapovsk',   name: 'Хапаровск',          meta: 'ДРОП 02',          hot:false },
+    { slug: 'norules',     name: 'No Rules',            meta: 'NEW',              hot:false },
+    { slug: 'magbottle',   name: 'MagBottle',           meta: 'NEW',              hot:false },
+    { slug: 'semeyniki',   name: 'Ох**ые семейники',   meta: 'ДМИТРИЙ АРНОЛЬД',  hot:false },
+    { slug: 'accessories', name: 'Аксессуары',         meta: 'ПАТЧИ И МЕЛОЧЬ',   hot:false },
+    { slug: 'other',       name: 'Другое',              meta: 'ДРОП 01',          hot:false }
   ];
 
   var listEl = document.getElementById('catList');
 
-CATEGORIES.forEach(function(cat, i){
-  var row = document.createElement('button');
-  row.className = 'cat-row';
-  
-  var isAccent = cat.hot || cat.meta === 'NEW';
+  CATEGORIES.forEach(function(cat, i){
+    var row = document.createElement('button');
+    row.className = 'cat-row';
+    
+    var isAccent = cat.hot || cat.meta === 'NEW';
 
-  row.innerHTML =
-    '<span class="cat-index mono">' + String(i + 1).padStart(2, '0') + '</span>' +
-    '<span class="cat-main">' +
-      '<span class="cat-name">' + cat.name + '</span>' +
-      '<span class="cat-meta mono' + (isAccent ? ' hot' : '') + '">' + cat.meta + '</span>' +
-    '</span>' +
-    '<span class="cat-arrow">→</span>';
+    row.innerHTML =
+      '<span class="cat-index mono">' + String(i + 1).padStart(2, '0') + '</span>' +
+      '<span class="cat-main">' +
+        '<span class="cat-name">' + cat.name + '</span>' +
+        '<span class="cat-meta mono' + (isAccent ? ' hot' : '') + '">' + cat.meta + '</span>' +
+      '</span>' +
+      '<span class="cat-arrow">→</span>';
 
-  row.addEventListener('click', function(){
-    if (tg && tg.HapticFeedback) {
-      try { tg.HapticFeedback.impactOccurred('light'); } catch(e){}
-    }
-    openCategory(cat.slug);
+    row.addEventListener('click', function(){
+      var targetUrl = 'category.html' + currentQuery + (currentQuery ? '&' : '?') + 'slug=' + encodeURIComponent(cat.slug);
+      navigateTo(targetUrl);
+    });
+
+    listEl.appendChild(row);
   });
-
-  listEl.appendChild(row);
-});
-
-  function openCategory(slug){
-    console.log('Open category:', slug);
-    window.location.href = 'category.html?slug=' + encodeURIComponent(slug);
-  }
 
   var profileBtn = document.getElementById('profileBtn');
-  profileBtn.addEventListener('click', function(){
-    if (tg && tg.HapticFeedback) {
-      try { tg.HapticFeedback.impactOccurred('light'); } catch(e){}
-    }
-    window.location.href = 'profile.html';
-  });
+  if (profileBtn) {
+    profileBtn.addEventListener('click', function(){
+      navigateTo('profile.html' + currentQuery);
+    });
+  }
 
 })();
 </script>

@@ -413,20 +413,25 @@
   var successSub = document.getElementById('successSub');
 
   function goToApp(context){
-    if (successSub) {
-      successSub.textContent = context.drop ? ('Открываем: ' + context.drop) : 'Переходим в каталог раннего доступа';
-    }
-    if (overlay) overlay.classList.add('show');
-    setTimeout(function(){
-      if (tg && tg.sendData) {
-        try { tg.sendData(JSON.stringify(context)); } catch(e){}
-      }
-      var params = new URLSearchParams();
-      if (context.via) params.set('via', context.via);
-      if (context.code) params.set('code', context.code);
-      window.location.href = 'catalog.html' + (params.toString() ? ('?' + params.toString()) : '');
-    }, 1400);
+  if (successSub) {
+    successSub.textContent = context.drop ? ('Открываем: ' + context.drop) : 'Переходим в каталог раннего доступа';
   }
+  if (overlay) overlay.classList.add('show');
+  
+  if (tg && tg.BackButton) {
+    try { tg.BackButton.hide(); } catch(e){}
+  }
+
+  setTimeout(function(){
+    if (tg && tg.sendData) {
+      try { tg.sendData(JSON.stringify(context)); } catch(e){}
+    }
+    var params = new URLSearchParams();
+    if (context.via) params.set('via', context.via);
+    if (context.code) params.set('code', context.code);
+    window.location.href = 'catalog.html' + (params.toString() ? ('?' + params.toString()) : '');
+  }, 1400);
+}
 })();
 </script>
 
