@@ -8,7 +8,7 @@
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Anton&family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;600;700&display=swap" rel="stylesheet">
 
 <style>
   :root{
@@ -29,7 +29,6 @@
   html, body{ height:100%; background:var(--bg); color:var(--text); font-family:'Inter', sans-serif; overflow:hidden; }
   body{ min-height:calc(var(--vh,1vh) * 100); display:flex; flex-direction:column; position:relative; }
 
-  .display{ font-family:'Anton', sans-serif; text-transform:uppercase; }
   .mono{ font-family:'JetBrains Mono', monospace; }
 
   .bg-grain{
@@ -80,7 +79,7 @@
   .screen{
     position:relative; z-index:1; flex:1;
     display:flex; flex-direction:column; align-items:center;
-    padding:26px 24px 10px; text-align:center; overflow-y:auto;
+    padding:32px 24px 16px; text-align:center; overflow-y:auto;
     opacity:0; transform:translateY(14px); transition: opacity 0.7s ease, transform 0.7s ease;
   }
   .screen.in{ opacity:1; transform:translateY(0); }
@@ -89,23 +88,24 @@
   .eyebrow{
     font-family:'JetBrains Mono', monospace;
     font-size:10px; letter-spacing:2px; font-weight:600; color:var(--text-faint);
-    margin-bottom:10px;
+    margin-bottom:12px;
     opacity:0; animation: fadeUp 0.6s ease forwards 0.1s;
   }
   .eyebrow b{ color:var(--accent); }
 
   .headline{
-    max-width:250px; line-height:0.86; color:var(--text);
+    width:100%; max-width:300px; line-height:0.86; color:var(--text);
+    margin:4px 0 12px;
     opacity:0; animation: fadeUp 0.6s ease forwards 0.2s;
   }
   .headline img {
-    max-width: 100%;
+    width: 100%;
     height: auto;   
+    display: block;
   }
-  .headline span{ color:var(--accent); }
 
   .divider{
-    width:100%; max-width:340px; height:1px; margin:10px auto 4px;
+    width:100%; max-width:340px; height:1px; margin:12px auto 8px;
     background: repeating-linear-gradient(90deg, var(--line) 0 6px, transparent 6px 12px);
     opacity:0; animation: fadeUp 0.6s ease forwards 0.3s;
   }
@@ -113,11 +113,11 @@
   @keyframes fadeUp{ from{ opacity:0; transform:translateY(10px); } to{ opacity:1; transform:translateY(0); } }
 
   .cat-list{
-    width:100%; max-width:340px; margin-top:6px; padding-bottom:22px;
+    width:100%; max-width:340px; margin-top:10px;
     opacity:0; animation: fadeUp 0.6s ease forwards 0.4s;
   }
   .cat-row{
-    display:flex; align-items:center; gap:14px;
+    display:flex; align-items:center; gap:10px;
     padding:18px 2px; border-bottom:1px dashed var(--line);
     background:none; border-left:none; border-right:none; border-top:none;
     width:100%; cursor:pointer; text-align:left;
@@ -126,15 +126,57 @@
   .cat-list .cat-row:first-child{ border-top:1px dashed var(--line); }
   .cat-row:active{ transform:scale(0.98); opacity:0.8; }
 
-  .cat-index{ font-family:'JetBrains Mono', monospace; font-size:11px; color:var(--text-faint); font-weight:600; flex-shrink:0; width:26px; }
+  .cat-index{ font-family:'JetBrains Mono', monospace; font-size:11px; color:var(--text-faint); font-weight:600; flex-shrink:0; width:22px; }
 
-  .cat-main{ flex:1; min-width:0; }
-  .cat-name{ font-family:'Anton', sans-serif; text-transform:uppercase; font-size:22px; line-height:1; color:var(--text); }
-  .cat-meta{ font-family:'JetBrains Mono', monospace; font-size:9.5px; letter-spacing:1px; color:var(--text-faint); margin-top:4px; text-transform:uppercase; margin-left: 2px; }
+  .cat-name{
+    font-family:'Oswald', sans-serif;
+    font-weight:700;
+    font-size:25px;
+    letter-spacing:0.8px;
+    line-height:0.95;
+    text-transform:uppercase;
+    color:var(--text);
+  }
+
+  .cat-meta{
+    font-family:'JetBrains Mono', monospace;
+    font-size:9.5px;
+    letter-spacing:0.5px;
+    color:var(--text-faint);
+    text-transform:uppercase;
+    margin-left:auto;
+    text-align:right;
+    max-width:90px;
+    line-height:1.2;
+    flex-shrink:0;
+  }
   .cat-meta.hot{ color:var(--accent); }
 
-  .cat-arrow{ font-size:16px; color:var(--text-faint); flex-shrink:0; transition: transform 0.15s ease; }
+  .cat-arrow{ font-size:16px; color:var(--text-faint); flex-shrink:0; transition: transform 0.15s ease; margin-left:4px; }
   .cat-row:active .cat-arrow{ transform:translateX(3px); color:var(--accent); }
+
+  /* Декоративный блок: линия толще, ниже и от края до края */
+  .decor-line-wrap{
+    width:100%; max-width:340px; margin:28px auto 16px;
+    display:flex; justify-content:center; align-items:center;
+    opacity:0; animation: fadeUp 0.6s ease forwards 0.5s;
+  }
+  .accent-curve{
+    width:100%; height:80px; overflow:visible;
+  }
+  .accent-curve path{
+    stroke: var(--accent);
+    stroke-width: 4.5;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    stroke-dasharray: 850;
+    stroke-dashoffset: 850;
+    animation: drawLine 2s cubic-bezier(0.4, 0, 0.2, 1) forwards 0.6s;
+  }
+
+  @keyframes drawLine {
+    to { stroke-dashoffset: 0; }
+  }
 
   .foot{
     position:relative; z-index:1; padding:10px 20px calc(14px + env(safe-area-inset-bottom,0px));
@@ -170,7 +212,6 @@
 
   <div class="eyebrow">[ <b>SWAG CLUB</b> × ROLDOZZZER ]</div>
 
-
   <div class="headline">
     <img src="CATALOG.png" alt="КАТАЛОГ">
   </div>
@@ -178,6 +219,13 @@
   <div class="divider"></div>
 
   <div class="cat-list" id="catList"></div>
+
+  <!-- Красная волна: от 0 до 340px (от границы до границы) -->
+  <div class="decor-line-wrap">
+    <svg class="accent-curve" viewBox="0 0 340 140" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M 0 95 C 25 80, 60 10, 95 10 C 130 10, 135 130, 165 130 C 195 130, 200 5, 235 5 C 270 5, 280 125, 305 125 C 320 125, 330 65, 340 30" />
+    </svg>
+  </div>
 
 </div>
 
@@ -225,12 +273,12 @@
   }
 
   var CATEGORIES = [
-    { slug: 'hapapovsk',   name: 'Хапаровск',          meta: 'ДРОП 02',          hot:false },
-    { slug: 'norules',     name: 'No Rules',            meta: 'NEW',              hot:false },
-    { slug: 'magbottle',   name: 'MagBottle',           meta: 'NEW',              hot:false },
-    { slug: 'semeyniki',   name: 'Ох**ые семейники',   meta: 'ДМИТРИЙ АРНОЛЬД',  hot:false },
-    { slug: 'accessories', name: 'Аксессуары',         meta: 'ПАТЧИ И МЕЛОЧЬ',   hot:false },
-    { slug: 'other',       name: 'Другое',              meta: 'ДРОП 01',          hot:false }
+    { slug: 'hapapovsk',   name: 'Хапаровск',            meta: 'ДРОП 02',          hot:false },
+    { slug: 'norules',     name: 'No Rules',              meta: 'NEW',              hot:false },
+    { slug: 'magbottle',   name: 'MagBottle',             meta: 'NEW',              hot:false },
+    { slug: 'semeyniki',   name: 'Ох**ые<br>семейники',   meta: 'ДМИТРИЙ АРНОЛЬД',  hot:false },
+    { slug: 'accessories', name: 'Аксессуары',           meta: 'ПАТЧИ И МЕЛОЧЬ',   hot:false },
+    { slug: 'other',       name: 'Другое',                meta: 'ДРОП 01',          hot:false }
   ];
 
   var listEl = document.getElementById('catList');
@@ -243,10 +291,8 @@
 
     row.innerHTML =
       '<span class="cat-index mono">' + String(i + 1).padStart(2, '0') + '</span>' +
-      '<span class="cat-main">' +
-        '<span class="cat-name">' + cat.name + '</span>' +
-        '<span class="cat-meta mono' + (isAccent ? ' hot' : '') + '">' + cat.meta + '</span>' +
-      '</span>' +
+      '<span class="cat-name">' + cat.name + '</span>' +
+      '<span class="cat-meta mono' + (isAccent ? ' hot' : '') + '">' + cat.meta + '</span>' +
       '<span class="cat-arrow">→</span>';
 
     row.addEventListener('click', function(){
