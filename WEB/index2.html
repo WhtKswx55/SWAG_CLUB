@@ -306,7 +306,6 @@
     }
   }
 
-  // Гарантированное добавление класса видимости
   var screen = document.getElementById('screen');
   if (screen) {
     setTimeout(function(){
@@ -420,8 +419,12 @@
     if (overlay) overlay.classList.add('show');
     setTimeout(function(){
       if (tg && tg.sendData) {
-        tg.sendData(JSON.stringify(context));
+        try { tg.sendData(JSON.stringify(context)); } catch(e){}
       }
+      var params = new URLSearchParams();
+      if (context.via) params.set('via', context.via);
+      if (context.code) params.set('code', context.code);
+      window.location.href = 'catalog.html' + (params.toString() ? ('?' + params.toString()) : '');
     }, 1400);
   }
 })();
