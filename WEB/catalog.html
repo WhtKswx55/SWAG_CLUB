@@ -93,8 +93,9 @@
   }
   .eyebrow b{ color:var(--accent); }
 
+  /* Возвращён прошлый компактный размер изображения */
   .headline{
-    width:100%; max-width:300px; line-height:0.86; color:var(--text);
+    width:100%; max-width:220px; line-height:0.86; color:var(--text);
     margin:4px 0 12px;
     opacity:0; animation: fadeUp 0.6s ease forwards 0.2s;
   }
@@ -155,7 +156,7 @@
   .cat-arrow{ font-size:16px; color:var(--text-faint); flex-shrink:0; transition: transform 0.15s ease; margin-left:4px; }
   .cat-row:active .cat-arrow{ transform:translateX(3px); color:var(--accent); }
 
-  /* Декоративный блок: линия толще, ниже и от края до края */
+  /* Акцентный вектор от границы до границы */
   .decor-line-wrap{
     width:100%; max-width:340px; margin:28px auto 16px;
     display:flex; justify-content:center; align-items:center;
@@ -220,7 +221,6 @@
 
   <div class="cat-list" id="catList"></div>
 
-  <!-- Красная волна: от 0 до 340px (от границы до границы) -->
   <div class="decor-line-wrap">
     <svg class="accent-curve" viewBox="0 0 340 140" fill="none" xmlns="http://www.w3.org/2000/svg">
       <path d="M 0 95 C 25 80, 60 10, 95 10 C 130 10, 135 130, 165 130 C 195 130, 200 5, 235 5 C 270 5, 280 125, 305 125 C 320 125, 330 65, 340 30" />
