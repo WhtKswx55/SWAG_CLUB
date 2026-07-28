@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>SWAG CLUB — Хапаровск</title>
+<title>SWAG CLUB — MAGBOTTLE</title>
 
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
 
@@ -192,7 +192,7 @@
     display: flex;
     flex-direction: column;
     align-items: center;
-    padding: 32px 16px 16px;
+    padding: 32px 16px 24px;
     text-align: center;
     overflow-y: auto;
     opacity: 0;
@@ -231,9 +231,19 @@
     text-transform: uppercase;
     letter-spacing: 1px;
     color: var(--text);
-    margin-bottom: 16px;
+    margin-bottom: 4px;
     opacity: 0;
     animation: fadeUp 0.6s ease forwards 0.2s;
+  }
+
+  .price-tag {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--accent);
+    margin-bottom: 16px;
+    opacity: 0;
+    animation: fadeUp 0.6s ease forwards 0.25s;
   }
 
   .divider {
@@ -251,71 +261,191 @@
     to { opacity: 1; transform: translateY(0); }
   }
 
-  .products-grid {
+  .slider-container {
     width: 100%;
     max-width: 380px;
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 12px;
+    margin-bottom: 20px;
     opacity: 0;
     animation: fadeUp 0.6s ease forwards 0.4s;
   }
 
-  .product-card {
-    background: var(--panel);
-    border: 1px solid var(--line);
-    border-radius: 4px;
-    overflow: hidden;
-    cursor: pointer;
-    text-align: left;
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between;
-    transition: transform 0.15s ease, border-color 0.15s ease;
-  }
-
-  .product-card:active {
-    transform: scale(0.98);
-  }
-
-  .product-img-wrap {
+  .slider {
     width: 100%;
     aspect-ratio: 1/1;
-    background: var(--panel2);
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: 6px;
     position: relative;
     overflow: hidden;
   }
 
-  .product-img-wrap img {
+  .slides {
+    display: flex;
+    width: 100%;
+    height: 100%;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    scrollbar-width: none;
+  }
+
+  .slides::-webkit-scrollbar {
+    display: none;
+  }
+
+  .slide {
+    flex: 0 0 100%;
+    height: 100%;
+    scroll-snap-align: start;
+    position: relative;
+  }
+
+  .slide img {
     width: 100%;
     height: 100%;
     object-fit: cover;
     display: block;
   }
 
-  .product-info {
-    padding: 10px 12px;
+  .slider-dots {
+    display: flex;
+    justify-content: center;
+    gap: 6px;
+    margin-top: 10px;
+  }
+
+  .dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--line);
+    transition: background 0.2s ease, transform 0.2s ease;
+    cursor: pointer;
+  }
+
+  .dot.active {
+    background: var(--accent);
+    transform: scale(1.2);
+  }
+
+  .options-section {
+    width: 100%;
+    max-width: 380px;
+    margin-bottom: 20px;
+    text-align: left;
+    opacity: 0;
+    animation: fadeUp 0.6s ease forwards 0.42s;
+  }
+
+  .options-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 6px;
+  }
+
+  .option-btn {
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: 4px;
+    padding: 10px 6px;
+    font-family: 'Oswald', sans-serif;
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+    color: var(--text);
+    cursor: pointer;
+    text-align: center;
+    transition: all 0.15s ease;
     display: flex;
     flex-direction: column;
-    gap: 4px;
+    align-items: center;
+    gap: 6px;
   }
 
-  .product-name {
+  .option-swatch {
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    border: 1px solid var(--line);
+    flex-shrink: 0;
+  }
+
+  .option-btn.selected {
+    background: var(--text);
+    color: var(--bg);
+    border-color: var(--text);
+  }
+
+  .option-btn:active {
+    transform: scale(0.95);
+  }
+
+  .info-card {
+    width: 100%;
+    max-width: 380px;
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    padding: 16px;
+    text-align: left;
+    margin-bottom: 24px;
+    opacity: 0;
+    animation: fadeUp 0.6s ease forwards 0.5s;
+  }
+
+  .info-title {
     font-family: 'Oswald', sans-serif;
+    font-size: 16px;
     font-weight: 700;
-    font-size: 14px;
     text-transform: uppercase;
     letter-spacing: 0.5px;
+    margin-bottom: 10px;
     color: var(--text);
-    line-height: 1.1;
   }
 
-  .product-price {
+  .info-text {
+    font-size: 13px;
+    line-height: 1.5;
+    color: var(--text-dim);
+    white-space: pre-line;
+  }
+
+  .info-text b {
+    color: var(--text);
+  }
+
+  .section-title {
     font-family: 'JetBrains Mono', monospace;
-    font-size: 12px;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 1px;
+    color: var(--text-dim);
+    margin-bottom: 8px;
+    text-transform: uppercase;
+  }
+
+  .order-btn {
+    width: 100%;
+    max-width: 380px;
+    background: var(--accent);
+    color: #fff;
+    border: none;
+    border-radius: 6px;
+    padding: 16px;
+    font-family: 'Oswald', sans-serif;
+    font-size: 18px;
     font-weight: 700;
-    color: var(--accent);
-    white-space: nowrap;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    cursor: pointer;
+    box-shadow: 0 4px 12px rgba(255, 59, 32, 0.25);
+    transition: transform 0.15s ease, opacity 0.15s ease;
+    opacity: 0;
+    animation: fadeUp 0.6s ease forwards 0.6s;
+  }
+
+  .order-btn:active {
+    transform: scale(0.98);
+    opacity: 0.9;
   }
 
   .foot {
@@ -340,9 +470,9 @@
 <div class="bg-grain"></div>
 <div class="bg-vignette"></div>
 
-<div class="tag tl">N.03<br><b>КАТЕГОРИЯ</b></div>
-<div class="tag tr"><b>SWAG</b> / HAP<br>27.07</div>
-<div class="spine">ХАПАРОВСК</div>
+<div class="tag tl">N.03<br><b>ТОВАР</b></div>
+<div class="tag tr"><b>SWAG</b> / MB<br>29.07</div>
+<div class="spine">MAGBOTTLE</div>
 
 <button class="back-btn" id="backBtn" aria-label="Назад">
   <svg viewBox="0 0 24 24"><path d="M15 5 8 12l7 7"/></svg>
@@ -350,37 +480,53 @@
 
 <div class="marquee">
   <div class="marquee-track" id="marqueeTrack">
-    <div class="marquee-item"><b>ХАПАРОВСК</b> — ДРОП 02 —</div>
-    <div class="marquee-item"><b>ХАПАРОВСК</b> — ДРОП 02 —</div>
+    <div class="marquee-item"><b>MAGBOTTLE</b> — НОВИНКА —</div>
+    <div class="marquee-item"><b>MAGBOTTLE</b> — НОВИНКА —</div>
   </div>
 </div>
 
 <div class="screen" id="screen">
-  <div class="eyebrow">[ <b>SWAG CLUB</b> × ДРОП 02 ]</div>
-  <div class="headline">Хапаровск</div>
+  <div class="eyebrow">[ <b>SWAG CLUB</b> × NEW ]</div>
+  <div class="headline" id="productTitle">MagBottle</div>
+  <div class="price-tag" id="productPrice">3 000 ₽</div>
   <div class="divider"></div>
 
-  <div class="products-grid" id="productsGrid">
-    <div class="product-card" data-id="kislota">
-      <div class="product-img-wrap">
-        <img src="img_hap/KISLOTA_1.png" alt="KISLOTA_1">
-      </div>
-      <div class="product-info">
-        <div class="product-name">КИСЛОТА</div>
-        <div class="product-price">8 500 ₽</div>
+  <div class="slider-container">
+    <div class="slider" id="slider">
+      <div class="slides" id="slidesTrack">
+        <div class="slide"><img src="mb_1.png" alt="Фото 1"></div>
+        <div class="slide"><img src="mb_2.png" alt="Фото 2"></div>
+        <div class="slide"><img src="mb_3.png" alt="Фото 3"></div>
+        <div class="slide"><img src="mb_4.png" alt="Фото 4"></div>
       </div>
     </div>
-
-    <div class="product-card" data-id="tray">
-      <div class="product-img-wrap">
-        <img src="img_hap/TARELKA_1.png" alt="TARELKA_1">
-      </div>
-      <div class="product-info">
-        <div class="product-name">ТАРЕЛКА</div>
-        <div class="product-price">1 500 ₽</div>
-      </div>
+    <div class="slider-dots" id="sliderDots">
+      <div class="dot active" data-index="0"></div>
+      <div class="dot" data-index="1"></div>
+      <div class="dot" data-index="2"></div>
+      <div class="dot" data-index="3"></div>
     </div>
   </div>
+
+  <div class="options-section">
+    <div class="section-title">Выберите цвет</div>
+    <div class="options-grid" id="colorGrid">
+      <button class="option-btn selected" data-color="BLACK"><span class="option-swatch" style="background:#1a1917;"></span>Черный</button>
+      <button class="option-btn" data-color="BLUE"><span class="option-swatch" style="background:#aee0dd;"></span>Голубой</button>
+      <button class="option-btn" data-color="WHITE"><span class="option-swatch" style="background:#f2efe6;"></span>Белый</button>
+    </div>
+  </div>
+
+  <div class="info-card">
+    <div class="info-title">Описание</div>
+    <div class="info-text">Бутылка 750 мл из нержавеющей стали с креплением MagSafe для смартфона.
+
+Позволяет удобно фиксировать телефон и использовать бутылку как штатив для съёмки тренировок и другого контента.
+
+Подходит для iPhone и Android. В комплекте идёт магнитное кольцо, которое можно приклеить на чехол или смартфон без поддержки MagSafe.</div>
+  </div>
+
+  <button class="order-btn" id="orderBtn">Оформить заказ</button>
 </div>
 
 <div class="foot"><b>SWAGCLUB.RU</b> · ROLDOZZZER</div>
@@ -406,9 +552,7 @@
       if (tg.setHeaderColor) tg.setHeaderColor('#f5f4ef');
       if (tg.setBackgroundColor) tg.setBackgroundColor('#f5f4ef');
       if (tg.BackButton) tg.BackButton.hide();
-    } catch(e) {
-      console.warn('Telegram WebApp init:', e);
-    }
+    } catch(e) {}
   }
 
   var urlParams = new URLSearchParams(window.location.search);
@@ -423,9 +567,7 @@
 
   function navigateTo(url) {
     if (tg && tg.HapticFeedback) {
-      try {
-        tg.HapticFeedback.impactOccurred('light');
-      } catch(e) {}
+      try { tg.HapticFeedback.impactOccurred('light'); } catch(e) {}
     }
     if (screen) {
       screen.classList.remove('in');
@@ -438,27 +580,64 @@
   var backBtn = document.getElementById('backBtn');
   if (backBtn) {
     backBtn.addEventListener('click', function() {
-      navigateTo('../catalog.html' + currentQuery);
+      navigateTo('magbottle.html' + currentQuery);
     });
   }
 
-  var cards = document.querySelectorAll('.product-card');
-  cards.forEach(function(card) {
-    var productId = card.getAttribute('data-id');
-    card.addEventListener('click', function() {
-      var targetUrl;
-      
-      if (productId === 'kislota') {
-        targetUrl = 'kislota.html' + currentQuery;
-      } else if (productId === 'tray') {
-        targetUrl = 'tarelka.html' + currentQuery;
-      } else {
-        targetUrl = 'tarelka.html' + currentQuery + (currentQuery ? '&' : '?') + 'id=' + productId;
+  var slidesTrack = document.getElementById('slidesTrack');
+  var sliderDots = document.getElementById('sliderDots');
+
+  var dots = sliderDots.querySelectorAll('.dot');
+  if (slidesTrack && dots.length > 0) {
+    slidesTrack.addEventListener('scroll', function() {
+      var slideWidth = slidesTrack.clientWidth;
+      var scrollLeft = slidesTrack.scrollLeft;
+      var activeIndex = Math.round(scrollLeft / slideWidth);
+
+      dots.forEach(function(dot, i) {
+        if (i === activeIndex) {
+          dot.classList.add('active');
+        } else {
+          dot.classList.remove('active');
+        }
+      });
+    });
+
+    dots.forEach(function(dot) {
+      dot.addEventListener('click', function() {
+        var index = parseInt(dot.getAttribute('data-index'), 10);
+        var slideWidth = slidesTrack.clientWidth;
+        slidesTrack.scrollTo({
+          left: slideWidth * index,
+          behavior: 'smooth'
+        });
+      });
+    });
+  }
+
+  var colorBtns = document.querySelectorAll('#colorGrid .option-btn');
+  var selectedColorLabel = 'Черный';
+
+  colorBtns.forEach(function(btn) {
+    btn.addEventListener('click', function() {
+      if (tg && tg.HapticFeedback) {
+        try { tg.HapticFeedback.selectionChanged(); } catch(e) {}
       }
-      
-      navigateTo(targetUrl);
+      colorBtns.forEach(function(b) { b.classList.remove('selected'); });
+      btn.classList.add('selected');
+      selectedColorLabel = btn.textContent.trim();
     });
   });
+
+  var orderBtn = document.getElementById('orderBtn');
+  if (orderBtn) {
+    orderBtn.addEventListener('click', function() {
+      if (tg && tg.HapticFeedback) {
+        try { tg.HapticFeedback.impactOccurred('medium'); } catch(e) {}
+      }
+      alert('Заказ оформлен! Товар: MagBottle, Цвет: ' + selectedColorLabel);
+    });
+  }
 })();
 </script>
 

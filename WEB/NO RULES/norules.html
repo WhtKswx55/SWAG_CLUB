@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>SWAG CLUB — Каталог</title>
+<title>SWAG CLUB — NO RULES</title>
 
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
 
@@ -112,11 +112,11 @@
     pointer-events: none;
   }
 
-  .profile-btn {
+  .back-btn {
     position: fixed;
     z-index: 5;
     top: 52px;
-    right: 18px;
+    left: 18px;
     width: 38px;
     height: 38px;
     border-radius: 50%;
@@ -129,18 +129,18 @@
     transition: transform 0.15s ease;
   }
 
-  .profile-btn:active {
+  .back-btn:active {
     transform: scale(0.92);
   }
 
-  .profile-btn svg {
-    width: 17px;
-    height: 17px;
+  .back-btn svg {
+    width: 16px;
+    height: 16px;
   }
 
-  .profile-btn path {
+  .back-btn path {
     stroke: var(--bg);
-    stroke-width: 1.8;
+    stroke-width: 2;
     fill: none;
     stroke-linecap: round;
     stroke-linejoin: round;
@@ -192,7 +192,7 @@
     display: flex;
     flex-direction: column;
     align-items: center;
-    padding: 32px 24px 16px;
+    padding: 32px 16px 24px;
     text-align: center;
     overflow-y: auto;
     opacity: 0;
@@ -225,26 +225,22 @@
   }
 
   .headline {
-    width: 100%;
-    max-width: 220px;
-    line-height: 0.86;
+    font-family: 'Oswald', sans-serif;
+    font-size: 30px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
     color: var(--text);
-    margin: 4px 0 12px;
+    margin-bottom: 4px;
     opacity: 0;
     animation: fadeUp 0.6s ease forwards 0.2s;
   }
 
-  .headline img {
-    width: 100%;
-    height: auto;
-    display: block;
-  }
-
   .divider {
     width: 100%;
-    max-width: 340px;
+    max-width: 380px;
     height: 1px;
-    margin: 12px auto 8px;
+    margin: 10px auto 20px;
     background: repeating-linear-gradient(90deg, var(--line) 0 6px, transparent 6px 12px);
     opacity: 0;
     animation: fadeUp 0.6s ease forwards 0.3s;
@@ -255,123 +251,80 @@
     to { opacity: 1; transform: translateY(0); }
   }
 
-  .cat-list {
+  .products-grid {
     width: 100%;
-    max-width: 340px;
-    margin-top: 10px;
+    max-width: 380px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin-bottom: 24px;
     opacity: 0;
     animation: fadeUp 0.6s ease forwards 0.4s;
   }
 
-  .cat-row {
+  .product-card {
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    cursor: pointer;
+    text-decoration: none;
+    transition: transform 0.15s ease, border-color 0.15s ease;
+    text-align: left;
+  }
+
+  .product-card:active {
+    transform: scale(0.97);
+  }
+
+  .product-img-wrap {
+    width: 100%;
+    aspect-ratio: 1/1;
+    background: #e6e4dc;
     display: flex;
     align-items: center;
-    gap: 10px;
-    padding: 18px 2px;
-    border-bottom: 1px dashed var(--line);
-    background: none;
-    border-left: none;
-    border-right: none;
-    border-top: none;
+    justify-content: center;
+    overflow: hidden;
+    border-bottom: 1px solid var(--line);
+  }
+
+  .product-img-wrap img {
     width: 100%;
-    cursor: pointer;
-    text-align: left;
-    transition: transform 0.12s ease, opacity 0.12s ease;
+    height: 100%;
+    object-fit: cover;
   }
 
-  .cat-list .cat-row:first-child {
-    border-top: 1px dashed var(--line);
+  .product-info {
+    padding: 12px 10px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    flex: 1;
   }
 
-  .cat-row:active {
-    transform: scale(0.98);
-    opacity: 0.8;
-  }
-
-  .cat-index {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 11px;
-    color: var(--text-faint);
-    font-weight: 600;
-    flex-shrink: 0;
-    width: 22px;
-  }
-
-  .cat-name {
+  .product-name {
     font-family: 'Oswald', sans-serif;
+    font-size: 16px;
     font-weight: 700;
-    font-size: 25px;
-    letter-spacing: 0.8px;
-    line-height: 0.95;
     text-transform: uppercase;
     color: var(--text);
+    margin-bottom: 6px;
+    line-height: 1.1;
   }
 
-  .cat-meta {
+  .product-price {
     font-family: 'JetBrains Mono', monospace;
-    font-size: 9.5px;
-    letter-spacing: 0.5px;
-    color: var(--text-faint);
-    text-transform: uppercase;
-    margin-left: auto;
-    text-align: right;
-    max-width: 90px;
-    line-height: 1.2;
-    flex-shrink: 0;
-  }
-
-  .cat-meta.hot {
+    font-size: 14px;
+    font-weight: 700;
     color: var(--accent);
-  }
-
-  .cat-arrow {
-    font-size: 16px;
-    color: var(--text-faint);
-    flex-shrink: 0;
-    transition: transform 0.15s ease;
-    margin-left: 4px;
-  }
-
-  .cat-row:active .cat-arrow {
-    transform: translateX(3px);
-    color: var(--accent);
-  }
-
-  .decor-line-wrap {
-    width: 100%;
-    max-width: 340px;
-    margin: 28px auto 16px;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    opacity: 0;
-    animation: fadeUp 0.6s ease forwards 0.5s;
-  }
-
-  .accent-curve {
-    width: 100%;
-    height: 80px;
-    overflow: visible;
-  }
-
-  .accent-curve path {
-    stroke: var(--accent);
-    stroke-width: 4.5;
-    stroke-linecap: round;
-    stroke-linejoin: round;
-    stroke-dasharray: 850;
-    stroke-dashoffset: 850;
-    animation: drawLine 2s cubic-bezier(0.4, 0, 0.2, 1) forwards 0.6s;
-  }
-
-  @keyframes drawLine {
-    to { stroke-dashoffset: 0; }
   }
 
   .foot {
     position: relative;
     z-index: 1;
-    padding: 10px 20px calc(14px + env(safe-area-inset-bottom, 0px));
+    padding: 18px 20px calc(14px + env(safe-area-inset-bottom, 0px));
     text-align: center;
     font-family: 'JetBrains Mono', monospace;
     font-size: 10px;
@@ -390,38 +343,36 @@
 <div class="bg-grain"></div>
 <div class="bg-vignette"></div>
 
-<div class="tag tl">N.02<br><b>КАТАЛОГ</b></div>
-<div class="tag tr"><b>SWAG</b> / 002<br>27.07</div>
-<div class="spine">ВЫБЕРИ КАТЕГОРИЮ</div>
+<div class="tag tl">N.04<br><b>КАТЕГОРИЯ</b></div>
+<div class="tag tr"><b>SWAG</b> / NR<br>27.07</div>
+<div class="spine">NO RULES</div>
 
-<button class="profile-btn" id="profileBtn" aria-label="Профиль">
-  <svg viewBox="0 0 24 24"><path d="M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8Z"/><path d="M4 20c1.6-3.8 5-6 8-6s6.4 2.2 8 6"/></svg>
+<button class="back-btn" id="backBtn" aria-label="Назад">
+  <svg viewBox="0 0 24 24"><path d="M15 5 8 12l7 7"/></svg>
 </button>
 
 <div class="marquee">
   <div class="marquee-track" id="marqueeTrack">
-    <div class="marquee-item"><b>EARLY ACCESS</b> — ТОЛЬКО ДЛЯ СВОИХ —</div>
-    <div class="marquee-item"><b>EARLY ACCESS</b> — ТОЛЬКО ДЛЯ СВОИХ —</div>
-    <div class="marquee-item"><b>EARLY ACCESS</b> — ТОЛЬКО ДЛЯ СВОИХ —</div>
-    <div class="marquee-item"><b>EARLY ACCESS</b> — ТОЛЬКО ДЛЯ СВОИХ —</div>
+    <div class="marquee-item"><b>NO RULES</b> — ДРОП 02 —</div>
+    <div class="marquee-item"><b>NO RULES</b> — ДРОП 02 —</div>
   </div>
 </div>
 
 <div class="screen" id="screen">
-  <div class="eyebrow">[ <b>SWAG CLUB</b> × ROLDOZZZER ]</div>
-
-  <div class="headline">
-    <img src="img/CATALOG.png" alt="КАТАЛОГ">
-  </div>
-
+  <div class="eyebrow">[ <b>SWAG CLUB</b> × ДРОП 02 ]</div>
+  <div class="headline">No Rules</div>
   <div class="divider"></div>
 
-  <div class="cat-list" id="catList"></div>
-
-  <div class="decor-line-wrap">
-    <svg class="accent-curve" viewBox="0 0 340 140" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <path d="M 0 95 C 25 80, 60 10, 95 10 C 130 10, 135 130, 165 130 C 195 130, 200 5, 235 5 C 270 5, 280 125, 305 125 C 320 125, 330 65, 340 30" />
-    </svg>
+  <div class="products-grid">
+    <a href="product-jersey.html" class="product-card" id="jerseyCard">
+      <div class="product-img-wrap">
+        <img src="no_rules_1.png" alt="Джерси">
+      </div>
+      <div class="product-info">
+        <div class="product-name">Джерси</div>
+        <div class="product-price">5 000 ₽</div>
+      </div>
+    </a>
   </div>
 </div>
 
@@ -447,13 +398,8 @@
       tg.expand();
       if (tg.setHeaderColor) tg.setHeaderColor('#f5f4ef');
       if (tg.setBackgroundColor) tg.setBackgroundColor('#f5f4ef');
-      
-      if (tg.BackButton) {
-        tg.BackButton.hide();
-      }
-    } catch(e) {
-      console.warn('Telegram WebApp init:', e);
-    }
+      if (tg.BackButton) tg.BackButton.hide();
+    } catch(e) {}
   }
 
   var urlParams = new URLSearchParams(window.location.search);
@@ -468,9 +414,7 @@
 
   function navigateTo(url) {
     if (tg && tg.HapticFeedback) {
-      try {
-        tg.HapticFeedback.impactOccurred('light');
-      } catch(e) {}
+      try { tg.HapticFeedback.impactOccurred('light'); } catch(e) {}
     }
     if (screen) {
       screen.classList.remove('in');
@@ -480,46 +424,18 @@
     }, 250);
   }
 
-  var CATEGORIES = [
-    { slug: 'hapapovsk', name: 'Хапаровск', meta: 'ДРОП 02', hot: false, customUrl: 'HAPAROVSK/haparovsk.html' },
-    { slug: 'norules', name: 'No Rules', meta: 'NEW', hot: false, customUrl: 'NO RULES/norules.html'},
-    { slug: 'magbottle', name: 'MagBottle', meta: 'NEW', hot: false, customUrl: 'MAGBOTTLE/magbottle.html' },
-    { slug: 'semeyniki', name: 'Ох**ые<br>семейники', meta: 'ДМИТРИЙ АРНОЛЬД', hot: false },
-    { slug: 'accessories', name: 'Аксессуары', meta: 'ПАТЧИ И МЕЛОЧЬ', hot: false },
-    { slug: 'other', name: 'Другое', meta: 'ДРОП 01', hot: false }
-  ];
-
-  var listEl = document.getElementById('catList');
-
-  CATEGORIES.forEach(function(cat, i) {
-    var row = document.createElement('button');
-    row.className = 'cat-row';
-    
-    var isAccent = cat.hot || cat.meta === 'NEW';
-
-    row.innerHTML =
-      '<span class="cat-index mono">' + String(i + 1).padStart(2, '0') + '</span>' +
-      '<span class="cat-name">' + cat.name + '</span>' +
-      '<span class="cat-meta mono' + (isAccent ? ' hot' : '') + '">' + cat.meta + '</span>' +
-      '<span class="cat-arrow">→</span>';
-
-    row.addEventListener('click', function() {
-      var targetUrl;
-      if (cat.customUrl) {
-        targetUrl = cat.customUrl + currentQuery;
-      } else {
-        targetUrl = 'category.html' + currentQuery + (currentQuery ? '&' : '?') + 'slug=' + encodeURIComponent(cat.slug);
-      }
-      navigateTo(targetUrl);
+  var backBtn = document.getElementById('backBtn');
+  if (backBtn) {
+    backBtn.addEventListener('click', function() {
+      navigateTo('../catalog.html' + currentQuery);
     });
+  }
 
-    listEl.appendChild(row);
-  });
-
-  var profileBtn = document.getElementById('profileBtn');
-  if (profileBtn) {
-    profileBtn.addEventListener('click', function() {
-      navigateTo('profile.html' + currentQuery);
+  var jerseyCard = document.getElementById('jerseyCard');
+  if (jerseyCard) {
+    jerseyCard.addEventListener('click', function(e) {
+      e.preventDefault();
+      navigateTo('jersi.html' + currentQuery);
     });
   }
 })();

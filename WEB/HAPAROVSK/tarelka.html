@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>SWAG CLUB — Хапаровск</title>
+<title>SWAG CLUB — ТАРЕЛКА</title>
 
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
 
@@ -192,7 +192,7 @@
     display: flex;
     flex-direction: column;
     align-items: center;
-    padding: 32px 16px 16px;
+    padding: 32px 16px 24px;
     text-align: center;
     overflow-y: auto;
     opacity: 0;
@@ -231,9 +231,19 @@
     text-transform: uppercase;
     letter-spacing: 1px;
     color: var(--text);
-    margin-bottom: 16px;
+    margin-bottom: 4px;
     opacity: 0;
     animation: fadeUp 0.6s ease forwards 0.2s;
+  }
+
+  .price-tag {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--accent);
+    margin-bottom: 16px;
+    opacity: 0;
+    animation: fadeUp 0.6s ease forwards 0.25s;
   }
 
   .divider {
@@ -251,71 +261,171 @@
     to { opacity: 1; transform: translateY(0); }
   }
 
-  .products-grid {
+  .slider-container {
     width: 100%;
     max-width: 380px;
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 12px;
+    margin-bottom: 20px;
     opacity: 0;
     animation: fadeUp 0.6s ease forwards 0.4s;
   }
 
-  .product-card {
-    background: var(--panel);
-    border: 1px solid var(--line);
-    border-radius: 4px;
-    overflow: hidden;
-    cursor: pointer;
-    text-align: left;
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between;
-    transition: transform 0.15s ease, border-color 0.15s ease;
-  }
-
-  .product-card:active {
-    transform: scale(0.98);
-  }
-
-  .product-img-wrap {
+  .slider {
     width: 100%;
     aspect-ratio: 1/1;
-    background: var(--panel2);
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: 6px;
     position: relative;
     overflow: hidden;
   }
 
-  .product-img-wrap img {
+  .slides {
+    display: flex;
+    width: 100%;
+    height: 100%;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    scrollbar-width: none;
+  }
+
+  .slides::-webkit-scrollbar {
+    display: none;
+  }
+
+  .slide {
+    flex: 0 0 100%;
+    height: 100%;
+    scroll-snap-align: start;
+    position: relative;
+    cursor: zoom-in;
+  }
+
+  .slide img {
     width: 100%;
     height: 100%;
     object-fit: cover;
     display: block;
   }
 
-  .product-info {
-    padding: 10px 12px;
+  .slider-dots {
+    display: flex;
+    justify-content: center;
+    gap: 6px;
+    margin-top: 10px;
+  }
+
+  .dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--line);
+    transition: background 0.2s ease, transform 0.2s ease;
+    cursor: pointer;
+  }
+
+  .dot.active {
+    background: var(--accent);
+    transform: scale(1.2);
+  }
+
+  .modal-zoom {
+    position: fixed;
+    inset: 0;
+    z-index: 100;
+    background: rgba(26, 25, 23, 0.92);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.25s ease;
+    backdrop-filter: blur(4px);
+    cursor: zoom-out;
+  }
+
+  .modal-zoom.open {
+    opacity: 1;
+    pointer-events: auto;
+  }
+
+  .modal-zoom img {
+    max-width: 95%;
+    max-height: 95%;
+    object-fit: contain;
+    border-radius: 4px;
+    transform: scale(0.95);
+    transition: transform 0.25s ease;
+  }
+
+  .modal-zoom.open img {
+    transform: scale(1);
+  }
+
+  .info-card {
+    width: 100%;
+    max-width: 380px;
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    padding: 16px;
+    text-align: left;
+    margin-bottom: 24px;
+    opacity: 0;
+    animation: fadeUp 0.6s ease forwards 0.5s;
+  }
+
+  .info-title {
+    font-family: 'Oswald', sans-serif;
+    font-size: 16px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 10px;
+    color: var(--text);
+  }
+
+  .info-text {
+    font-size: 13px;
+    line-height: 1.5;
+    color: var(--text-dim);
+    margin-bottom: 12px;
+  }
+
+  .info-list {
+    list-style: none;
+    font-size: 12px;
+    color: var(--text-dim);
+    line-height: 1.6;
     display: flex;
     flex-direction: column;
     gap: 4px;
-  }
-
-  .product-name {
-    font-family: 'Oswald', sans-serif;
-    font-weight: 700;
-    font-size: 14px;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    color: var(--text);
-    line-height: 1.1;
-  }
-
-  .product-price {
     font-family: 'JetBrains Mono', monospace;
-    font-size: 12px;
+  }
+
+
+    .order-btn {
+    width: 100%;
+    max-width: 380px;
+    background: var(--accent);
+    color: #fff;
+    border: none;
+    border-radius: 6px;
+    padding: 16px;
+    font-family: 'Oswald', sans-serif;
+    font-size: 18px;
     font-weight: 700;
-    color: var(--accent);
-    white-space: nowrap;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    cursor: pointer;
+    box-shadow: 0 4px 12px rgba(255, 59, 32, 0.25);
+    transition: transform 0.15s ease, opacity 0.15s ease;
+    opacity: 0;
+    animation: fadeUp 0.6s ease forwards 0.6s;
+  }
+
+  .order-btn:active {
+    transform: scale(0.98);
+    opacity: 0.9;
   }
 
   .foot {
@@ -340,9 +450,9 @@
 <div class="bg-grain"></div>
 <div class="bg-vignette"></div>
 
-<div class="tag tl">N.03<br><b>КАТЕГОРИЯ</b></div>
-<div class="tag tr"><b>SWAG</b> / HAP<br>27.07</div>
-<div class="spine">ХАПАРОВСК</div>
+<div class="tag tl">N.05<br><b>ТОВАР</b></div>
+<div class="tag tr"><b>SWAG</b> / TRK<br>27.07</div>
+<div class="spine">ТАРЕЛКА</div>
 
 <button class="back-btn" id="backBtn" aria-label="Назад">
   <svg viewBox="0 0 24 24"><path d="M15 5 8 12l7 7"/></svg>
@@ -350,37 +460,56 @@
 
 <div class="marquee">
   <div class="marquee-track" id="marqueeTrack">
-    <div class="marquee-item"><b>ХАПАРОВСК</b> — ДРОП 02 —</div>
-    <div class="marquee-item"><b>ХАПАРОВСК</b> — ДРОП 02 —</div>
+    <div class="marquee-item"><b>ТАРЕЛКА</b> — ДРОП 02 —</div>
+    <div class="marquee-item"><b>ТАРЕЛКА</b> — ДРОП 02 —</div>
   </div>
 </div>
 
 <div class="screen" id="screen">
   <div class="eyebrow">[ <b>SWAG CLUB</b> × ДРОП 02 ]</div>
-  <div class="headline">Хапаровск</div>
+  <div class="headline">Тарелка (полянка)</div>
+  <div class="price-tag">1 500 ₽</div>
   <div class="divider"></div>
 
-  <div class="products-grid" id="productsGrid">
-    <div class="product-card" data-id="kislota">
-      <div class="product-img-wrap">
-        <img src="img_hap/KISLOTA_1.png" alt="KISLOTA_1">
-      </div>
-      <div class="product-info">
-        <div class="product-name">КИСЛОТА</div>
-        <div class="product-price">8 500 ₽</div>
+  <div class="slider-container">
+    <div class="slider" id="slider">
+      <div class="slides" id="slidesTrack">
+        <div class="slide"><img src="img_hap/TARELKA_1.png" alt="Тарелка вид 1"></div>
+        <div class="slide"><img src="img_hap/TARELKA_2.png" alt="Тарелка вид 2"></div>
+        <div class="slide"><img src="img_hap/TARELKA_3.png" alt="Тарелка вид 3"></div>
+        <div class="slide"><img src="img_hap/TARELKA_4.png" alt="Тарелка вид 4"></div>
+        <div class="slide"><img src="img_hap/TARELKA_5.png" alt="Тарелка вид 5"></div>
       </div>
     </div>
-
-    <div class="product-card" data-id="tray">
-      <div class="product-img-wrap">
-        <img src="img_hap/TARELKA_1.png" alt="TARELKA_1">
-      </div>
-      <div class="product-info">
-        <div class="product-name">ТАРЕЛКА</div>
-        <div class="product-price">1 500 ₽</div>
-      </div>
+    <div class="slider-dots" id="sliderDots">
+      <div class="dot active" data-index="0"></div>
+      <div class="dot" data-index="1"></div>
+      <div class="dot" data-index="2"></div>
+      <div class="dot" data-index="3"></div>
+      <div class="dot" data-index="4"></div>
     </div>
   </div>
+
+  <div class="info-card">
+    <div class="info-title">Описание</div>
+    <div class="info-text">
+      Металлическая тарелка (полянка)<br>
+      Размер: 18 × 12.5 см<br><br>
+      Многофункциональное изделие с фирменным стилем.
+    </div>
+    <div class="info-title" style="margin-top: 14px;">Применение</div>
+    <ul class="info-list">
+      <li>— Подходит для животных</li>
+      <li>— Для смешивания табака</li>
+      <li>— И другие варианты использования</li>
+    </ul>
+  </div>
+
+  <button class="order-btn" id="orderBtn">Заказать</button>
+</div>
+
+<div class="modal-zoom" id="modalZoom">
+  <img id="modalImg" src="" alt="Увеличенное фото">
 </div>
 
 <div class="foot"><b>SWAGCLUB.RU</b> · ROLDOZZZER</div>
@@ -438,27 +567,78 @@
   var backBtn = document.getElementById('backBtn');
   if (backBtn) {
     backBtn.addEventListener('click', function() {
-      navigateTo('../catalog.html' + currentQuery);
+      navigateTo('haparovsk.html' + currentQuery);
     });
   }
 
-  var cards = document.querySelectorAll('.product-card');
-  cards.forEach(function(card) {
-    var productId = card.getAttribute('data-id');
-    card.addEventListener('click', function() {
-      var targetUrl;
+  var slidesTrack = document.getElementById('slidesTrack');
+  var dots = document.querySelectorAll('.dot');
+  
+  if (slidesTrack && dots.length > 0) {
+    slidesTrack.addEventListener('scroll', function() {
+      var slideWidth = slidesTrack.clientWidth;
+      var scrollLeft = slidesTrack.scrollLeft;
+      var activeIndex = Math.round(scrollLeft / slideWidth);
       
-      if (productId === 'kislota') {
-        targetUrl = 'kislota.html' + currentQuery;
-      } else if (productId === 'tray') {
-        targetUrl = 'tarelka.html' + currentQuery;
-      } else {
-        targetUrl = 'tarelka.html' + currentQuery + (currentQuery ? '&' : '?') + 'id=' + productId;
-      }
-      
-      navigateTo(targetUrl);
+      dots.forEach(function(dot, i) {
+        if (i === activeIndex) {
+          dot.classList.add('active');
+        } else {
+          dot.classList.remove('active');
+        }
+      });
+    });
+
+    dots.forEach(function(dot) {
+      dot.addEventListener('click', function() {
+        var index = parseInt(dot.getAttribute('data-index'), 10);
+        var slideWidth = slidesTrack.clientWidth;
+        slidesTrack.scrollTo({
+          left: slideWidth * index,
+          behavior: 'smooth'
+        });
+      });
+    });
+  }
+
+  var modalZoom = document.getElementById('modalZoom');
+  var modalImg = document.getElementById('modalImg');
+  var slideImages = document.querySelectorAll('.slide img');
+
+  function openModal(imgSrc) {
+    modalImg.src = imgSrc;
+    modalZoom.classList.add('open');
+    if (tg && tg.HapticFeedback) {
+      try { tg.HapticFeedback.impactOccurred('light'); } catch(e) {}
+    }
+  }
+
+  function closeModal() {
+    modalZoom.classList.remove('open');
+  }
+
+  slideImages.forEach(function(img) {
+    img.addEventListener('click', function() {
+      openModal(img.src);
     });
   });
+
+  if (modalZoom) {
+    modalZoom.addEventListener('click', function() {
+      closeModal();
+    });
+  }
+
+  // Кнопка заказа
+  var orderBtn = document.getElementById('orderBtn');
+  if (orderBtn) {
+    orderBtn.addEventListener('click', function() {
+      if (tg && tg.HapticFeedback) {
+        try { tg.HapticFeedback.impactOccurred('medium'); } catch(e) {}
+      }
+      alert('Заказ товара "ТАРЕЛКА (полянка)"');
+    });
+  }
 })();
 </script>
 
