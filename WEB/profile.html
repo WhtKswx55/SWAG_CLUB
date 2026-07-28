@@ -144,7 +144,14 @@
     font-family:'JetBrains Mono', monospace; font-size:10px; font-weight:700;
     color:var(--accent); text-transform:uppercase; letter-spacing:1.2px;
   }
-  .ea-tag .dot{ width:5px; height:5px; background:var(--accent); border-radius:50%; }
+  .ea-tag .dot{
+    width:5px; height:5px; background:var(--accent); border-radius:50%;
+    animation: pulseDot 1.8s ease-in-out infinite;
+  }
+  @keyframes pulseDot{
+    0%, 100%{ opacity:1; transform:scale(1); }
+    50%{ opacity:0.35; transform:scale(0.8); }
+  }
 
   /* ---- Calm data rows, matching the catalog list rhythm ---- */
   .data-list{
