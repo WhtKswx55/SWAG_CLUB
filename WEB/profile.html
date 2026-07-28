@@ -3,24 +3,25 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>SWAG CLUB — Профиль Подписчика</title>
+<title>SWAG CLUB — Профиль</title>
 
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Anton&family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@500;600;700&display=swap" rel="stylesheet">
 
 <style>
   :root{
-    --bg:#f5f4ef;
-    --panel:#eae8df;
-    --panel2:#e0ded3;
-    --line:#d1cdbe;
+    --bg:#f4f3ee;
+    --panel:#e8e6dc;
+    --panel-dark:#1a1917;
+    --line:#1a1917;
     --text:#1a1917;
     --text-dim:#666155;
     --text-faint:#9e988a;
     --accent:#ff3b20;
-    --accent-dim:#ffdedb;
+    --accent-green:#2b8a3e;
+    --leo-bg:#dca865;
     --vh: 1vh;
   }
 
@@ -30,54 +31,55 @@
   body{ min-height:calc(var(--vh,1vh) * 100); display:flex; flex-direction:column; position:relative; }
 
   .mono{ font-family:'JetBrains Mono', monospace; }
-  .display{ font-family:'Anton', sans-serif; text-transform:uppercase; }
-
-  .bg-text-pattern{
-    position:fixed; inset:0; z-index:0; pointer-events:none; opacity:0.035;
-    background-image:url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="220" height="110" viewBox="0 0 220 110"><text x="10" y="60" fill="%231a1917" font-family="Anton, Impact, sans-serif" font-weight="900" font-size="26" letter-spacing="1" transform="rotate(-15 110 55)">SWAG CLUB</text></svg>');
-    background-repeat:repeat;
-  }
 
   .bg-grain{
-    position:fixed; inset:0; z-index:0; pointer-events:none; opacity:0.06; mix-blend-mode:multiply;
-    background-image:url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="140" height="140"><filter id="n"><feTurbulence type="fractalNoise" baseFrequency="0.85" numOctaves="2" stitchTiles="stitch"/></filter><rect width="100%25" height="100%25" filter="url(%23n)"/></svg>');
+    position:fixed; inset:0; z-index:0; pointer-events:none; opacity:0.05; mix-blend-mode:multiply;
+    background-image:url('data:image/svg+xml;<svg xmlns="http://www.w3.org/2000/svg" width="140" height="140"><filter id="n"><feTurbulence type="fractalNoise" baseFrequency="0.8" numOctaves="2" stitchTiles="stitch"/></filter><rect width="100%" height="100%" filter="url(%23n)"/></svg>');
   }
-  .bg-vignette{ position:fixed; inset:0; z-index:0; pointer-events:none; box-shadow: inset 0 0 160px 50px rgba(0,0,0,0.05); }
+
+  .side-label {
+  position: fixed;
+  z-index: 10;
+  left: 8px;
+  top: 370px;
+  transform: rotate(-90deg);
+  transform-origin: left top;
+
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 3px;
+  color: var(--text-faint);
+  text-transform: uppercase;
+  white-space: nowrap;
+  pointer-events: none;
+}
 
   .tag{ position:fixed; z-index:3; font-size:10px; letter-spacing:1px; color:var(--text-faint); pointer-events:none; }
-  .tag.tl{ top:16px; left:18px; text-align:left; }
-  .tag.tl b{ color:var(--text-dim); }
+  .tag.tl{ top:16px; left:18px; }
   .tag.tr{ top:16px; right:18px; text-align:right; }
-  .tag.tr b{ color:var(--text-dim); }
-
-  .spine{
-    position:fixed; z-index:3; left:8px; top:50%; transform:translateY(-50%) rotate(-90deg) translateX(50%);
-    transform-origin:left center;
-    font-size:10px; letter-spacing:3px; color:var(--text-faint); font-weight:700;
-    white-space:nowrap; pointer-events:none;
-  }
 
   .back-btn{
-    position:fixed; z-index:5; top:52px; left:18px;
-    width:38px; height:38px; border-radius:50%;
-    background:var(--panel); border:1px solid var(--line);
+    position:fixed; z-index:5; top:48px; left:18px;
+    width:36px; height:36px; border-radius:2px;
+    background:var(--panel-dark); color:#fff; border:none;
     display:flex; align-items:center; justify-content:center;
     cursor:pointer; transition: transform 0.15s ease, background 0.15s ease;
   }
-  .back-btn:active{ transform:scale(0.92); background:var(--panel2); }
+  .back-btn:active{ transform:scale(0.92); background:var(--accent); }
   .back-btn svg{ width:16px; height:16px; }
-  .back-btn path{ stroke:var(--text); stroke-width:2; fill:none; stroke-linecap:round; stroke-linejoin:round; }
+  .back-btn path{ stroke:#fff; stroke-width:2; fill:none; stroke-linecap:round; stroke-linejoin:round; }
 
   .marquee{
     position:relative; z-index:2; width:100%; overflow:hidden;
-    background:#1a1917; border-bottom:1px solid var(--line);
+    background:var(--panel-dark); border-bottom:1px solid var(--line);
     padding:6px 0; flex-shrink:0;
   }
-  .marquee-track{ display:flex; width:max-content; animation: scrollLeft 18s linear infinite; }
+  .marquee-track{ display:flex; width:max-content; animation: scrollLeft 20s linear infinite; }
   .marquee-item{
     display:flex; align-items:center; gap:9px;
     font-family:'JetBrains Mono', monospace;
-    font-size:10px; font-weight:600; letter-spacing:1.5px; color:#8f887a;
+    font-size:10px; font-weight:600; letter-spacing:1.5px; color:#a39d8f;
     padding:0 20px; white-space:nowrap;
   }
   .marquee-item b{ color:var(--accent); }
@@ -86,128 +88,189 @@
   .screen{
     position:relative; z-index:1; flex:1;
     display:flex; flex-direction:column; align-items:center;
-    padding:22px 20px 24px; overflow-y:auto;
-    opacity:0; transform:translateY(14px); transition: opacity 0.5s ease, transform 0.5s ease;
+    padding:20px 18px 20px 32px; overflow-y:auto;
+    opacity:0; transform:translateY(10px); transition: opacity 0.4s ease, transform 0.4s ease;
   }
   .screen.in{ opacity:1; transform:translateY(0); }
   .screen::-webkit-scrollbar{ display:none; }
 
-  .container{ width:100%; max-width:340px; }
+  .container{ width:100%; max-width:350px; }
 
-  .eyebrow{
-    font-family:'JetBrains Mono', monospace;
-    font-size:10px; letter-spacing:2px; font-weight:600; color:var(--text-faint);
-    text-align:center; margin-bottom:14px;
-  }
-  .eyebrow b{ color:var(--accent); }
-
-  .profile-card{
-    background:var(--panel); border:1px solid var(--text); border-radius:2px;
-    padding:18px; position:relative; overflow:hidden; margin-bottom:14px;
-    box-shadow: 4px 4px 0px var(--line);
-  }
-  .profile-card::after{
-    content:'SWAG MEMBER'; position:absolute; bottom:-12px; right:-8px;
-    font-family:'Anton', sans-serif; font-size:40px; color:var(--panel2);
-    z-index:0; pointer-events:none; opacity:0.6; line-height:1;
-  }
-
-  .user-header{ display:flex; align-items:center; gap:14px; position:relative; z-index:1; }
-  .user-avatar{
-    width:52px; height:52px; border-radius:50%; background:var(--panel2);
-    border:1px solid var(--text); display:flex; align-items:center; justify-content:center;
-    font-family:'Anton', sans-serif; font-size:22px; color:var(--text); flex-shrink:0;
+  .docket{
+    border:1.5px solid var(--line);
+    background:var(--bg);
+    box-shadow: 4px 4px 0px rgba(26,25,23,0.08);
+    position:relative;
     overflow:hidden;
   }
-  .user-avatar img{ width:100%; height:100%; object-fit:cover; }
 
-  .user-info{ flex:1; min-width:0; text-align:left; }
-  .user-name{ font-family:'Anton', sans-serif; font-size:20px; line-height:1.1; text-transform:uppercase; color:var(--text); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
-  .user-meta{ font-size:11px; color:var(--text-dim); margin-top:2px; }
+  .leo-bangs {
+    width: 100%;
+    height: 110px;
+    background-image: 
+      linear-gradient(180deg, rgba(0,0,0,0.35) 0%, rgba(0,0,0,0.1) 100%),
+      url('leopard.jpg'); 
+    background-size: cover;        
+    background-position: center;   
+    background-repeat: no-repeat;
+    border-bottom: 1.5px solid var(--line);
+    border-radius: 0 0 50% 50% / 0 0 30px 30px;
+    position: relative;
+  }
 
-  .badge-row{ margin-top:14px; display:flex; align-items:center; justify-content:space-between; position:relative; z-index:1; }
-  .status-badge{
+  .leo-title-tag{
+    position:absolute; top:12px; left:50%; transform:translateX(-50%);
+    background:var(--panel-dark); color:#fff;
+    font-family:'JetBrains Mono', monospace; font-size:8px; font-weight:700;
+    letter-spacing:1.5px; padding:3px 10px; text-transform:uppercase;
+    border: 1px solid rgba(255,255,255,0.15);
+  }
+
+  .profile-hero{
+    display:flex; flex-direction:column; align-items:center;
+    padding: 0 16px 18px;
+    margin-top: -42px;
+    border-bottom:1px solid var(--line);
+    text-align:center;
+    position: relative;
+    z-index: 2;
+  }
+
+  .avatar-wrap{
+    width:76px; height:76px;
+    border-radius:50%;
+    border:2px solid var(--line);
+    background:var(--bg);
+    padding:3px;
+    box-shadow:0 4px 10px rgba(0,0,0,0.15);
+    margin-bottom:10px;
+    position: relative;
+    z-index: 3;
+  }
+  .avatar-img-box{
+    width:100%; height:100%; border-radius:50%;
+    background:var(--panel-dark); color:#fff;
+    display:flex; align-items:center; justify-content:center;
+    font-family:'Oswald', sans-serif; font-size:28px; font-weight:700;
+    line-height:1;
+    overflow:hidden;
+  }
+  .avatar-img-box img{ width:100%; height:100%; object-fit:cover; }
+
+  .user-name{
+    font-family:'Oswald', sans-serif; font-size:22px; font-weight:700;
+    text-transform:uppercase; line-height:1.1; color:var(--text);
+  }
+  .user-handle{
+    font-family:'JetBrains Mono', monospace; font-size:11px;
+    color:var(--text-dim); margin-top:2px; margin-bottom:10px;
+  }
+
+  .early-access-badge{
     display:inline-flex; align-items:center; gap:6px;
-    background:var(--accent); color:#fff; padding:4px 8px; border-radius:2px;
-    font-family:'JetBrains Mono', monospace; font-size:9.5px; font-weight:700; letter-spacing:1px;
-    text-transform:uppercase;
+    background:var(--accent); color:#fff;
+    font-family:'JetBrains Mono', monospace; font-size:10px; font-weight:700;
+    letter-spacing:1px; padding:4px 12px; border-radius:1px;
+    text-transform:uppercase; border:1px solid var(--line);
+    box-shadow: 2px 2px 0px var(--line);
   }
-  .status-badge.inactive{ background:var(--text-dim); }
-  .status-dot{ width:5px; height:5px; border-radius:50%; background:#fff; animation: blink 1.2s infinite; }
-  @keyframes blink{ 0%, 100%{ opacity:1; } 50%{ opacity:0.2; } }
-
-  .member-id{ font-family:'JetBrains Mono', monospace; font-size:10px; color:var(--text-faint); font-weight:600; }
-
-  .sub-timer-box{
-    background:var(--panel); border:1px solid var(--line); border-radius:2px; padding:14px;
-    margin-bottom:16px; text-align:left;
+  .early-access-badge::before{
+    content:''; width:6px; height:6px; background:#fff; border-radius:50%;
+    animation: pulse 1.5s infinite;
   }
-  .sub-timer-header{ display:flex; justify-content:space-between; font-family:'JetBrains Mono', monospace; font-size:10px; color:var(--text-dim); font-weight:700; margin-bottom:6px; text-transform:uppercase; }
-  .sub-timer-val{ color:var(--accent); font-weight:700; }
-  .progress-bar{ width:100%; height:6px; background:var(--panel2); border-radius:3px; overflow:hidden; border:1px solid var(--line); }
-  .progress-fill{ height:100%; background:var(--accent); width:76%; transition: width 0.5s ease; }
-  .sub-timer-sub{ font-family:'JetBrains Mono', monospace; font-size:9px; color:var(--text-faint); margin-top:6px; }
+  @keyframes pulse{ 0%,100%{ opacity:1; } 50%{ opacity:0.3; } }
 
-  .level-box{
-    background:var(--panel); border:1px solid var(--line); border-radius:2px; padding:14px; margin-bottom:16px; text-align:left;
+  .status-progress-section{
+    padding:12px 14px;
+    border-bottom:1px solid var(--line);
+    background:var(--bg);
   }
-  .level-head{ display:flex; justify-content:space-between; align-items:center; }
-  .level-title{ font-family:'Anton', sans-serif; font-size:18px; color:var(--text); text-transform:uppercase; }
-  .level-badge{ font-family:'JetBrains Mono', monospace; font-size:9px; font-weight:700; background:var(--text); color:var(--bg); padding:3px 6px; border-radius:2px; }
-  .level-desc{ font-family:'JetBrains Mono', monospace; font-size:10px; color:var(--text-dim); margin-top:6px; line-height:1.4; }
+  .status-head{
+    display:flex; justify-content:space-between; align-items:center;
+    margin-bottom:6px;
+  }
+  .cell-label{ font-family:'JetBrains Mono', monospace; font-size:9px; color:var(--text-faint); font-weight:600; text-transform:uppercase; letter-spacing:1px; }
+  .cell-val-accent{ font-family:'JetBrains Mono', monospace; font-size:10px; font-weight:700; color:var(--accent); text-transform:uppercase; }
 
-  .code-card{
-    background:var(--panel2); border:1px dashed var(--line); border-radius:2px; padding:12px 14px;
-    margin-bottom:16px; text-align:left;
+  .progress-track{
+    width:100%; height:8px;
+    background:var(--panel);
+    border:1px solid var(--line);
+    border-radius:1px;
+    overflow:hidden;
   }
-  .code-title{ font-family:'JetBrains Mono', monospace; font-size:10px; color:var(--text-faint); text-transform:uppercase; }
-  .code-row{ display:flex; align-items:center; justify-content:space-between; margin-top:4px; }
-  .code-value{ font-family:'JetBrains Mono', monospace; font-size:13px; font-weight:700; color:var(--text); letter-spacing:1px; }
-  .code-status{ font-family:'JetBrains Mono', monospace; font-size:9px; color:#2b8a3e; font-weight:700; text-transform:uppercase; }
+  .progress-fill{
+    height:100%; background:var(--accent); width:77%;
+    transition: width 0.4s ease;
+  }
+  .status-subtext{
+    font-family:'JetBrains Mono', monospace;
+    font-size:10px; color:var(--text-dim); margin-top:6px;
+  }
 
-  .promo-box{
-    background:var(--panel); border:1px solid var(--line); border-radius:2px; padding:14px; margin-bottom:16px; text-align:left;
+  .bound-code-section{
+    padding:12px 14px;
+    border-bottom:1px solid var(--line);
+    background:var(--bg);
+    display:flex; justify-content:space-between; align-items:center;
   }
-  .promo-box label{ display:block; font-family:'JetBrains Mono', monospace; font-size:10px; color:var(--text-dim); text-transform:uppercase; margin-bottom:8px; font-weight:600; }
-  .promo-row{ display:flex; gap:8px; }
+  .code-val{ font-family:'JetBrains Mono', monospace; font-size:12px; font-weight:700; color:var(--text); }
+  .code-status{ font-family:'JetBrains Mono', monospace; font-size:9px; font-weight:700; color:var(--accent-green); text-transform:uppercase; }
+
+  .level-section{
+    padding:16px 14px;
+    border-bottom:1px solid var(--line);
+    background:var(--panel);
+  }
+  .level-header{ display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; }
+  .level-tag{ font-family:'JetBrains Mono', monospace; font-size:9px; font-weight:700; color:var(--text-faint); letter-spacing:1px; text-transform:uppercase; }
+  .level-badge-text{ font-family:'JetBrains Mono', monospace; font-size:10px; font-weight:700; background:var(--panel-dark); color:#fff; padding:2px 6px; text-transform:uppercase; }
+
+  .level-title{ font-family:'Oswald', sans-serif; font-size:20px; font-weight:700; text-transform:uppercase; line-height:1; color:var(--text); margin-bottom:6px; }
+  .level-desc{ font-size:11px; line-height:1.45; color:var(--text-dim); }
+
+  .promo-section{ padding:14px; }
+  .promo-label{ font-family:'JetBrains Mono', monospace; font-size:9px; font-weight:700; color:var(--text-faint); text-transform:uppercase; letter-spacing:1px; margin-bottom:8px; display:block; }
+  .promo-input-group{ display:flex; gap:0; border:1px solid var(--line); }
   .promo-input{
-    flex:1; background:var(--bg); border:1px solid var(--line); border-radius:2px; padding:10px 12px;
+    flex:1; background:transparent; border:none; padding:10px 12px;
     font-family:'JetBrains Mono', monospace; font-size:12px; font-weight:700; color:var(--text); text-transform:uppercase; outline:none;
   }
-  .promo-input:focus{ border-color:var(--accent); }
-  .promo-submit{
-    background:var(--text); color:var(--bg); border:none; border-radius:2px; padding:0 14px;
+  .promo-btn{
+    background:var(--panel-dark); color:#fff; border:none; padding:0 16px;
     font-family:'JetBrains Mono', monospace; font-size:11px; font-weight:700; cursor:pointer;
+    transition: background 0.15s ease;
   }
-  .promo-msg{ font-family:'JetBrains Mono', monospace; font-size:10px; margin-top:8px; min-height:14px; }
-  .promo-msg.ok{ color:#2b8a3e; }
-  .promo-msg.err{ color:var(--accent); }
+  .promo-btn:active{ background:var(--accent); }
+  .promo-status{ font-family:'JetBrains Mono', monospace; font-size:10px; margin-top:6px; min-height:14px; }
+  .promo-status.ok{ color:var(--accent-green); font-weight:700; }
+  .promo-status.err{ color:var(--accent); font-weight:700; }
 
-  .btn-renew{
-    width:100%; border:none; background:var(--text); color:#fff; padding:14px; border-radius:2px;
-    font-family:'JetBrains Mono', monospace; font-size:12px; font-weight:700;
-    cursor:pointer; text-transform:uppercase; letter-spacing:1px; margin-bottom:10px;
-    transition: transform 0.15s ease;
+  .action-wrap{ margin-top:16px; }
+  .btn-primary{
+    width:100%; background:var(--panel-dark); color:#fff; border:1.5px solid var(--line);
+    padding:16px; font-family:'JetBrains Mono', monospace; font-size:12px; font-weight:700;
+    letter-spacing:1.5px; text-transform:uppercase; cursor:pointer;
+    display:flex; align-items:center; justify-content:center; gap:10px;
+    transition: transform 0.15s ease, background 0.15s ease;
   }
-  .btn-renew:active{ transform:scale(0.97); }
+  .btn-primary:active{ transform:scale(0.98); background:var(--accent); border-color:var(--accent); }
 
   .foot{
-    position:relative; z-index:1; padding:10px 20px calc(14px + env(safe-area-inset-bottom,0px));
+    position:relative; z-index:1; padding:12px 20px calc(14px + env(safe-area-inset-bottom,0px));
     text-align:center; font-family:'JetBrains Mono', monospace;
     font-size:10px; color:var(--text-faint); letter-spacing:1.5px; flex-shrink:0;
   }
-  .foot b{ color:var(--text-dim); }
 </style>
 </head>
 <body>
 
-<div class="bg-text-pattern"></div>
 <div class="bg-grain"></div>
-<div class="bg-vignette"></div>
 
-<div class="tag tl">N.03<br><b>ПРОФИЛЬ</b></div>
-<div class="tag tr"><b>SWAG</b> / 003<br>27.07</div>
-<div class="spine">ЛИЧНЫЙ КАБИНЕТ</div>
+<div class="side-label">ЛИЧНЫЙ КАБИНЕТ</div>
+
+<div class="tag tl">N.03 / PROFILE</div>
+<div class="tag tr">SWAG CLUB</div>
 
 <button class="back-btn" id="backBtn" aria-label="Назад">
   <svg viewBox="0 0 24 24"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
@@ -225,70 +288,78 @@
 <div class="screen" id="screen">
   <div class="container">
     
-    <div class="eyebrow">[ <b>SWAG MEMBER</b> × CARD ]</div>
+    <div class="docket">
 
-    <div class="profile-card">
-      <div class="user-header">
-        <div class="user-avatar" id="avatarBox">S</div>
-        <div class="user-info">
-          <div class="user-name" id="userName">SWAG MEMBER</div>
-          <div class="user-meta mono" id="userHandle">@telegram_user</div>
+      <div class="leo-bangs">
+        <div class="leo-title-tag">SWAG MEMBER DOCKET</div>
+      </div>
+
+      <div class="profile-hero">
+        <div class="avatar-wrap">
+          <div class="avatar-img-box" id="avatarBox">S</div>
+        </div>
+        <div class="user-name" id="userName">SWAG MEMBER</div>
+        <div class="user-handle" id="userHandle">@guest_user</div>
+        
+        <div class="early-access-badge">
+          EARLY ACCESS
         </div>
       </div>
 
-      <div class="badge-row">
-        <div class="status-badge" id="statusBadge">
-          <span class="status-dot"></span>
-          <span id="statusText">EARLY ACCESS</span>
+      <div class="status-progress-section">
+        <div class="status-head">
+          <span class="cell-label">СТАТУС ПОДПИСКИ:</span>
+          <span class="cell-val-accent" id="daysLeftText">ОСТАЛОСЬ 23 ДНЯ</span>
         </div>
-        <div class="member-id" id="memberId">ID: #84920</div>
+        <div class="progress-track">
+          <div class="progress-fill" id="progressFill"></div>
+        </div>
+        <div class="status-subtext">
+          Активна до: <span id="subEndDate">27.08.2026</span> (Ранний доступ открыт)
+        </div>
       </div>
-    </div>
 
-    <div class="sub-timer-box" id="subTimerBox">
-      <div class="sub-timer-header">
-        <span>Статус подписки:</span>
-        <span class="sub-timer-val" id="daysLeftText">Осталось 23 дня</span>
-      </div>
-      <div class="progress-bar">
-        <div class="progress-fill" id="progressFill"></div>
-      </div>
-      <div class="sub-timer-sub" id="subEndDate">Активна до: 27.08.2026 (Ранний доступ открыт)</div>
-    </div>
-
-    <div class="level-box">
-      <div class="level-head">
-        <div class="level-title">LVL 2: DROP HUNTER</div>
-        <div class="level-badge">2 МЕСЯЦА В КЛУБЕ</div>
-      </div>
-      <div class="level-desc">
-        Привилегии: Ранний выкуп за 14 дней + гарантированная бронь низких серийных номеров мерча (#001–#010).
-      </div>
-    </div>
-
-    <div class="code-card">
-      <div class="code-title">Привязанный код подписки</div>
-      <div class="code-row">
-        <div class="code-value" id="boundCodeVal">SWAG-849204-X7</div>
+      <div class="bound-code-section">
+        <div>
+          <div class="cell-label" style="margin-bottom:2px;">ПРИВЯЗАННЫЙ КОД ПОДПИСКИ</div>
+          <div class="code-val" id="boundCodeVal">SWAG-84920</div>
+        </div>
         <div class="code-status">ПРИВЯЗАН К ID</div>
       </div>
-    </div>
 
-    <div class="promo-box">
-      <label>Ввести новый код подписки</label>
-      <div class="promo-row">
-        <input class="promo-input" id="promoInput" placeholder="SWAG-XXXX" maxlength="14" autocomplete="off">
-        <button class="promo-submit" id="promoBtn">OK</button>
+      <div class="level-section">
+        <div class="level-header">
+          <span class="level-tag">ТЕКУЩИЙ УРОВЕНЬ</span>
+          <span class="level-badge-text">1-Й МЕСЯЦ</span>
+        </div>
+        <div class="level-title">LVL 1: MEMBER</div>
+        <div class="level-desc">
+          Ранний доступ к каталогу за 3 дня до официального релиза. Участие в закрытых раффлах на право покупки.
+        </div>
       </div>
-      <div class="promo-msg" id="promoMsg"></div>
+
+      <div class="promo-section">
+        <label class="promo-label">ВВЕСТИ НОВЫЙ КОД ПОДПИСКИ</label>
+        <div class="promo-input-group">
+          <input class="promo-input" id="promoInput" placeholder="SWAG-XXXX" maxlength="14" autocomplete="off">
+          <button class="promo-btn" id="promoBtn">ОК</button>
+        </div>
+        <div class="promo-status" id="promoMsg"></div>
+      </div>
+
     </div>
 
-    <button class="btn-renew" id="renewSubBtn">Продлить подписку в боте →</button>
+    <div class="action-wrap">
+      <button class="btn-primary" id="renewSubBtn">
+        <span>Продлить подписку в боте</span>
+        <span>→</span>
+      </button>
+    </div>
 
   </div>
 </div>
 
-<div class="foot"><b>SWAGCLUB.RU</b> · ROLDOZZZER</div>
+<div class="foot">SWAGCLUB.RU · ROLDOZZZER</div>
 
 <script>
 (function(){
@@ -300,7 +371,7 @@
   if (track) track.innerHTML += track.innerHTML;
 
   var screen = document.getElementById('screen');
-  if (screen) setTimeout(function(){ screen.classList.add('in'); }, 100);
+  if (screen) setTimeout(function(){ screen.classList.add('in'); }, 80);
 
   var urlParams = new URLSearchParams(window.location.search);
   var currentQuery = urlParams.toString() ? ('?' + urlParams.toString()) : '';
@@ -312,8 +383,8 @@
     try {
       tg.ready();
       tg.expand();
-      if (tg.setHeaderColor) tg.setHeaderColor('#f5f4ef');
-      if (tg.setBackgroundColor) tg.setBackgroundColor('#f5f4ef');
+      if (tg.setHeaderColor) tg.setHeaderColor('#f4f3ee');
+      if (tg.setBackgroundColor) tg.setBackgroundColor('#f4f3ee');
       
       if (tg.initDataUnsafe && tg.initDataUnsafe.user) {
         tgUser = tg.initDataUnsafe.user;
@@ -323,7 +394,7 @@
         tg.BackButton.show();
         tg.BackButton.onClick(goBack);
       }
-    } catch(e){ console.warn('Telegram WebApp init:', e); }
+    } catch(e){}
   }
 
   var backBtn = document.getElementById('backBtn');
@@ -348,21 +419,19 @@
       } else {
         window.location.href = 'catalog.html' + currentQuery;
       }
-    }, 200);
+    }, 150);
   }
 
   function initProfile(){
     var userNameEl = document.getElementById('userName');
     var userHandleEl = document.getElementById('userHandle');
     var avatarBox = document.getElementById('avatarBox');
-    var memberIdEl = document.getElementById('memberId');
     var boundCodeVal = document.getElementById('boundCodeVal');
 
     if (tgUser) {
       var name = (tgUser.first_name || '') + ' ' + (tgUser.last_name || '');
       userNameEl.textContent = name.trim() || 'SWAG MEMBER';
       userHandleEl.textContent = tgUser.username ? ('@' + tgUser.username) : ('ID: ' + tgUser.id);
-      memberIdEl.textContent = 'ID: #' + String(tgUser.id).slice(-5);
       
       if (tgUser.photo_url) {
         avatarBox.innerHTML = '<img src="' + tgUser.photo_url + '" alt="Avatar">';
@@ -370,13 +439,20 @@
         avatarBox.textContent = (tgUser.first_name || 'S').charAt(0).toUpperCase();
       }
 
-      boundCodeVal.textContent = 'SWAG-' + String(tgUser.id).slice(-6) + '-X7';
+      boundCodeVal.textContent = 'SWAG-' + String(tgUser.id).slice(-5);
     } else {
       userNameEl.textContent = 'SWAG MEMBER';
       userHandleEl.textContent = '@guest_user';
       avatarBox.textContent = 'S';
-      boundCodeVal.textContent = 'SWAG-849204-X7';
+      boundCodeVal.textContent = 'SWAG-84920';
     }
+
+    var daysLeft = 23;
+    var totalDays = 30;
+    var pct = Math.round((daysLeft / totalDays) * 100);
+    
+    var fill = document.getElementById('progressFill');
+    if(fill) fill.style.width = pct + '%';
   }
 
   initProfile();
@@ -399,7 +475,7 @@
     promoInput.addEventListener('input', function(){
       promoInput.value = promoInput.value.toUpperCase();
       promoMsg.textContent = '';
-      promoMsg.className = 'promo-msg';
+      promoMsg.className = 'promo-status';
     });
   }
 
@@ -409,12 +485,12 @@
       if(!code) return;
 
       if(code.startsWith('SWAG')) {
-        promoMsg.textContent = '✓ Подписка продлена на 30 дней!';
-        promoMsg.className = 'promo-msg ok';
+        promoMsg.textContent = '✓ Код применен (+30 дней)';
+        promoMsg.className = 'promo-status ok';
         if (tg && tg.HapticFeedback) { try { tg.HapticFeedback.notificationOccurred('success'); } catch(e){} }
       } else {
-        promoMsg.textContent = 'Недействительный код подписки';
-        promoMsg.className = 'promo-msg err';
+        promoMsg.textContent = 'Недействительный код';
+        promoMsg.className = 'promo-status err';
         if (tg && tg.HapticFeedback) { try { tg.HapticFeedback.notificationOccurred('error'); } catch(e){} }
       }
     });
