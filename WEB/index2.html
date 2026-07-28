@@ -332,7 +332,7 @@
         } catch(e){}
         goToApp({ via: 'telegram', user: tgUser });
       } else {
-        window.open('https://t.me/swagclub_bot?start=login', '_blank');
+        window.open('https://t.me/SwagClubEA_bot?start=login', '_blank');
       }
     });
   }
@@ -423,9 +423,6 @@
   }
 
   setTimeout(function(){
-    if (tg && tg.sendData) {
-      try { tg.sendData(JSON.stringify(context)); } catch(e){}
-    }
     var params = new URLSearchParams();
     if (context.via) params.set('via', context.via);
     if (context.code) params.set('code', context.code);

@@ -371,6 +371,21 @@
     transform: scale(0.95);
   }
 
+  #colorGrid .option-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+  }
+
+  .option-swatch {
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    border: 1px solid var(--line);
+    flex-shrink: 0;
+  }
+
   .sizes-section {
     width: 100%;
     max-width: 380px;
@@ -534,8 +549,8 @@
   <div class="options-section">
     <div class="section-title">Выберите цвет</div>
     <div class="options-grid" id="colorGrid">
-      <button class="option-btn selected" data-color="MILK">MILK</button>
-      <button class="option-btn" data-color="RED">RED</button>
+      <button class="option-btn selected" data-color="MILK"><span class="option-swatch" style="background:#f2efe6;"></span>MILK</button>
+      <button class="option-btn" data-color="RED"><span class="option-swatch" style="background:#ff3b20;"></span>RED</button>
     </div>
   </div>
 
@@ -651,35 +666,35 @@
   var sliderDots = document.getElementById('sliderDots');
   var currentColor = 'MILK';
 
-  function initSliderEvents() {
-    var dots = sliderDots.querySelectorAll('.dot');
-    
-    if (slidesTrack && dots.length > 0) {
-      slidesTrack.addEventListener('scroll', function() {
-        var slideWidth = slidesTrack.clientWidth;
-        var scrollLeft = slidesTrack.scrollLeft;
-        var activeIndex = Math.round(scrollLeft / slideWidth);
-        
-        dots.forEach(function(dot, i) {
-          if (i === activeIndex) {
-            dot.classList.add('active');
-          } else {
-            dot.classList.remove('active');
-          }
-        });
-      });
+  if (slidesTrack) {
+    slidesTrack.addEventListener('scroll', function() {
+      var dots = sliderDots.querySelectorAll('.dot');
+      if (!dots.length) return;
+      var slideWidth = slidesTrack.clientWidth;
+      var scrollLeft = slidesTrack.scrollLeft;
+      var activeIndex = Math.round(scrollLeft / slideWidth);
 
-      dots.forEach(function(dot) {
-        dot.addEventListener('click', function() {
-          var index = parseInt(dot.getAttribute('data-index'), 10);
-          var slideWidth = slidesTrack.clientWidth;
-          slidesTrack.scrollTo({
-            left: slideWidth * index,
-            behavior: 'smooth'
-          });
-        });
+      dots.forEach(function(dot, i) {
+        if (i === activeIndex) {
+          dot.classList.add('active');
+        } else {
+          dot.classList.remove('active');
+        }
       });
-    }
+    });
+  }
+
+  if (sliderDots) {
+    sliderDots.addEventListener('click', function(e) {
+      var dot = e.target.closest('.dot');
+      if (!dot) return;
+      var index = parseInt(dot.getAttribute('data-index'), 10);
+      var slideWidth = slidesTrack.clientWidth;
+      slidesTrack.scrollTo({
+        left: slideWidth * index,
+        behavior: 'smooth'
+      });
+    });
   }
 
   function renderSlider(color) {
@@ -697,8 +712,6 @@
     slidesTrack.innerHTML = trackHtml;
     sliderDots.innerHTML = dotsHtml;
     slidesTrack.scrollTo({ left: 0, behavior: 'instant' });
-    
-    initSliderEvents();
   }
 
   renderSlider('MILK');
@@ -719,7 +732,7 @@
 
   var configBtns = document.querySelectorAll('#configGrid .option-btn');
   var productPrice = document.getElementById('productPrice');
-  var selectedConfigName = 'Футболka';
+  var selectedConfigName = 'Футболка';
   var selectedPrice = 5000;
   
   configBtns.forEach(function(btn) {
