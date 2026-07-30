@@ -6,6 +6,7 @@
 <title>SWAG CLUB</title>
 
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
+<script src="js/auth.js"></script>
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Anton&family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;600;700&display=swap" rel="stylesheet">
@@ -367,11 +368,6 @@
     });
   }
 
-  var VALID_CODES = {
-    'SWAG40':   'Капсульный дроп SWAG × ROLDOZZZER',
-    'LEOPARD1': 'Первая леопардовая коллекция'
-  };
-
   if (codeInput) {
     codeInput.addEventListener('input', function(){
       codeInput.value = codeInput.value.toUpperCase();
@@ -385,7 +381,7 @@
 
   if (codeGo) codeGo.addEventListener('click', submitCode);
 
-  function submitCode(){
+  async function submitCode(){
     if (!codeInput || !codeMsg) return;
     var val = codeInput.value.trim();
     if (!val) {
@@ -397,24 +393,24 @@
     codeMsg.textContent = 'Проверяем…';
     codeMsg.className = 'code-msg';
 
-    setTimeout(function(){
-      if (codeGo) codeGo.disabled = false;
-      var dropName = VALID_CODES[val];
-      if (dropName) {
-        codeMsg.textContent = 'Код принят';
-        codeMsg.className = 'code-msg success';
-        try {
-          if (tg && tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('success');
-        } catch(e){}
-        goToApp({ via: 'code', code: val, drop: dropName });
-      } else {
-        codeMsg.textContent = 'Такой код не найден';
-        codeMsg.className = 'code-msg error';
-        try {
-          if (tg && tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('error');
-        } catch(e){}
-      }
-    }, 500);
+    var result = await window.SwagAuth.redeemCode(val);
+
+    if (codeGo) codeGo.disabled = false;
+
+    if (result && result.ok) {
+      codeMsg.textContent = 'Код принят';
+      codeMsg.className = 'code-msg success';
+      try {
+        if (tg && tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('success');
+      } catch(e){}
+      goToApp({ via: 'code', code: val, drop: result.drop_name, level_name: result.level_name });
+    } else {
+      codeMsg.textContent = (result && result.message) ? result.message : 'Такой код не найден';
+      codeMsg.className = 'code-msg error';
+      try {
+        if (tg && tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('error');
+      } catch(e){}
+    }
   }
 
   var overlay = document.getElementById('successOverlay');
@@ -422,7 +418,13 @@
 
   function goToApp(context){
   if (successSub) {
-    successSub.textContent = context.drop ? ('Открываем: ' + context.drop) : 'Переходим в каталог раннего доступа';
+    if (context.drop) {
+      successSub.textContent = 'Открываем: ' + context.drop;
+    } else if (context.level_name) {
+      successSub.textContent = 'Уровень доступа: ' + context.level_name;
+    } else {
+      successSub.textContent = 'Переходим в каталог раннего доступа';
+    }
   }
   if (overlay) overlay.classList.add('show');
   

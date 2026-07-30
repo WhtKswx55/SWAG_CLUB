@@ -6,6 +6,7 @@
 <title>SWAG CLUB — Каталог</title>
 
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
+<script src="js/auth.js"></script>
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;600;700&display=swap" rel="stylesheet">
@@ -264,6 +265,7 @@
   }
 
   .cat-row {
+    position: relative;
     display: flex;
     align-items: center;
     gap: 10px;
@@ -276,6 +278,7 @@
     width: 100%;
     cursor: pointer;
     text-align: left;
+    overflow: hidden;
     transition: transform 0.12s ease, opacity 0.12s ease;
   }
 
@@ -335,6 +338,58 @@
   .cat-row:active .cat-arrow {
     transform: translateX(3px);
     color: var(--accent);
+  }
+
+  .cat-row.locked .cat-name,
+  .cat-row.locked .cat-meta {
+    filter: blur(5px);
+    user-select: none;
+  }
+
+  .cat-row.locked .cat-arrow {
+    opacity: 0;
+  }
+
+  .lock-tape {
+    display: none;
+    position: absolute;
+    left: -6px;
+    right: -6px;
+    top: 50%;
+    height: 24px;
+    transform: translateY(-50%) rotate(-1.6deg);
+    background-image: url('img/leopard_tape.jpg');
+    background-size: cover;
+    background-position: center;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.25);
+  }
+
+  .cat-row.locked .lock-tape {
+    display: flex;
+  }
+
+  .lock-tape::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: rgba(255,59,32,0.55);
+    mix-blend-mode: multiply;
+  }
+
+  .lock-tape span {
+    position: relative;
+    z-index: 1;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 1.5px;
+    color: #fff;
+    text-transform: uppercase;
+    text-shadow: 0 1px 2px rgba(0,0,0,0.45);
+    white-space: nowrap;
   }
 
   .decor-line-wrap {
@@ -489,29 +544,42 @@
   }
 
   var CATEGORIES = [
-    { slug: 'haparovsk', name: 'Хапаровск', meta: 'ДРОП 02', hot: false, customUrl: 'HAPAROVSK/haparovsk.html' },
-    { slug: 'norules', name: 'No Rules', meta: 'NEW', hot: false, customUrl: 'NO RULES/norules.html'},
-    { slug: 'magbottle', name: 'MagBottle', meta: 'NEW', hot: false, customUrl: 'MAGBOTTLE/magbottle.html' },
-    { slug: 'semeyniki', name: 'Ох**ые<br>семейники', meta: 'СКОРО', hot: false, customUrl: 'category_soon.html' },
-    { slug: 'accessories', name: 'Аксессуары', meta: 'ПАТЧИ И МЕЛОЧЬ', hot: false, customUrl: 'category_soon.html' },
-    { slug: 'other', name: 'Другое', meta: 'ДРОП 01', hot: false, customUrl: 'category_soon.html'}
+    { slug: 'haparovsk', name: 'Хапаровск', meta: 'ДРОП 02', hot: false, customUrl: 'HAPAROVSK/haparovsk.html', requiredLevel: 1 },
+    { slug: 'norules', name: 'No Rules', meta: 'NEW', hot: false, customUrl: 'NO RULES/norules.html', requiredLevel: 1 },
+    { slug: 'magbottle', name: 'MagBottle', meta: 'NEW', hot: false, customUrl: 'MAGBOTTLE/magbottle.html', requiredLevel: 1 },
+    { slug: 'semeyniki', name: 'Ох**ые<br>семейники', meta: 'СКОРО', hot: false, customUrl: 'category_soon.html', requiredLevel: 0 },
+    { slug: 'accessories', name: 'Аксессуары', meta: 'ПАТЧИ И МЕЛОЧЬ', hot: false, customUrl: 'category_soon.html', requiredLevel: 0 },
+    { slug: 'other', name: 'Другое', meta: 'ДРОП 01', hot: false, customUrl: 'category_soon.html', requiredLevel: 0 }
   ];
 
   var listEl = document.getElementById('catList');
+  var userLevel = 0; 
 
   CATEGORIES.forEach(function(cat, i) {
     var row = document.createElement('button');
-    row.className = 'cat-row';
-    
+    row.className = 'cat-row' + (cat.requiredLevel > 0 ? ' locked' : '');
+    row.dataset.required = cat.requiredLevel;
+
     var isAccent = cat.hot || cat.meta === 'NEW';
 
     row.innerHTML =
       '<span class="cat-index mono">' + String(i + 1).padStart(2, '0') + '</span>' +
       '<span class="cat-name">' + cat.name + '</span>' +
       '<span class="cat-meta mono' + (isAccent ? ' hot' : '') + '">' + cat.meta + '</span>' +
-      '<span class="cat-arrow">→</span>';
+      '<span class="cat-arrow">→</span>' +
+      '<div class="lock-tape"><span>ТОЛЬКО ПО КОДУ</span></div>';
 
     row.addEventListener('click', function() {
+      var required = parseInt(row.dataset.required, 10) || 0;
+
+      if (required > userLevel) {
+        try {
+          if (tg && tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('warning');
+        } catch(e) {}
+        navigateTo('index2.html' + currentQuery);
+        return;
+      }
+
       var targetUrl;
       if (cat.customUrl) {
         targetUrl = cat.customUrl + currentQuery;
@@ -523,6 +591,21 @@
 
     listEl.appendChild(row);
   });
+
+  function applyLocks(level) {
+    userLevel = level;
+    var rows = listEl.querySelectorAll('.cat-row');
+    rows.forEach(function(row) {
+      var required = parseInt(row.dataset.required, 10) || 0;
+      row.classList.toggle('locked', required > level);
+    });
+  }
+
+  if (window.SwagAuth) {
+    window.SwagAuth.fetchStatus().then(function(status) {
+      applyLocks(status && status.level ? status.level : 0);
+    });
+  }
 
   var profileBtn = document.getElementById('profileBtn');
   if (profileBtn) {

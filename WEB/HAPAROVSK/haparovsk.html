@@ -6,6 +6,7 @@
 <title>SWAG CLUB — Хапаровск</title>
 
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
+<script src="../js/auth.js"></script>
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;600;700&display=swap" rel="stylesheet">
@@ -262,6 +263,7 @@
   }
 
   .product-card {
+    position: relative;
     background: var(--panel);
     border: 1px solid var(--line);
     border-radius: 4px;
@@ -272,6 +274,82 @@
     flex-direction: column;
     justify-content: space-between;
     transition: transform 0.15s ease, border-color 0.15s ease;
+  }
+
+  .product-card.locked .product-img-wrap img {
+    filter: blur(16px) saturate(0.85);
+    transform: scale(1.15);
+  }
+
+  .product-card.locked .product-name,
+  .product-card.locked .product-price {
+    filter: blur(4px);
+    user-select: none;
+  }
+
+  .lock-ribbon {
+    display: none;
+    position: absolute;
+    left: -22%;
+    right: -22%;
+    top: 34%;
+    height: 30px;
+    transform: rotate(-9deg);
+    background-image: url('../img/leopard_tape.jpg');
+    background-size: cover;
+    background-position: center;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 3px 10px rgba(0,0,0,0.3);
+    z-index: 2;
+  }
+
+  .product-card.locked .lock-ribbon {
+    display: flex;
+  }
+
+  .lock-ribbon::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: rgba(255,59,32,0.6);
+    mix-blend-mode: multiply;
+  }
+
+  .lock-ribbon span {
+    position: relative;
+    z-index: 1;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    font-weight: 800;
+    letter-spacing: 1.5px;
+    color: #fff;
+    text-transform: uppercase;
+    text-shadow: 0 1px 2px rgba(0,0,0,0.5);
+    white-space: nowrap;
+  }
+
+  .lock-cta {
+    display: none;
+    position: absolute;
+    bottom: 10px;
+    left: 8px;
+    right: 8px;
+    z-index: 3;
+    background: var(--text);
+    color: var(--bg);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 9.5px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    text-align: center;
+    padding: 8px 4px;
+    border-radius: 2px;
+  }
+
+  .product-card.locked .lock-cta {
+    display: block;
   }
 
   .product-card:active {
@@ -361,7 +439,7 @@
   <div class="divider"></div>
 
   <div class="products-grid" id="productsGrid">
-    <div class="product-card" data-id="kislota">
+    <div class="product-card locked" data-id="kislota">
       <div class="product-img-wrap">
         <img src="img_hap/KISLOTA_1.png" alt="KISLOTA_1">
       </div>
@@ -369,9 +447,11 @@
         <div class="product-name">КИСЛОТА</div>
         <div class="product-price">8 500 ₽</div>
       </div>
+      <div class="lock-ribbon"><span>Только по коду</span></div>
+      <div class="lock-cta">Получить доступ →</div>
     </div>
 
-    <div class="product-card" data-id="tray">
+    <div class="product-card locked" data-id="tray">
       <div class="product-img-wrap">
         <img src="img_hap/TARELKA_1.png" alt="TARELKA_1">
       </div>
@@ -379,6 +459,8 @@
         <div class="product-name">ТАРЕЛКА</div>
         <div class="product-price">1 500 ₽</div>
       </div>
+      <div class="lock-ribbon"><span>Только по коду</span></div>
+      <div class="lock-cta">Получить доступ →</div>
     </div>
   </div>
 </div>
@@ -442,12 +524,22 @@
     });
   }
 
+  var REQUIRED_LEVEL = 1; 
+  var userLevel = 0;
+
   var cards = document.querySelectorAll('.product-card');
   cards.forEach(function(card) {
     var productId = card.getAttribute('data-id');
     card.addEventListener('click', function() {
+      if (userLevel < REQUIRED_LEVEL) {
+        try {
+          if (tg && tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('warning');
+        } catch(e) {}
+        navigateTo('../index2.html' + currentQuery);
+        return;
+      }
+
       var targetUrl;
-      
       if (productId === 'kislota') {
         targetUrl = 'kislota.html' + currentQuery;
       } else if (productId === 'tray') {
@@ -455,10 +547,23 @@
       } else {
         targetUrl = 'tarelka.html' + currentQuery + (currentQuery ? '&' : '?') + 'id=' + productId;
       }
-      
+
       navigateTo(targetUrl);
     });
   });
+
+  function applyLocks(level) {
+    userLevel = level;
+    cards.forEach(function(card) {
+      card.classList.toggle('locked', level < REQUIRED_LEVEL);
+    });
+  }
+
+  if (window.SwagAuth) {
+    window.SwagAuth.fetchStatus().then(function(status) {
+      applyLocks(status && status.level ? status.level : 0);
+    });
+  }
 })();
 </script>
 
