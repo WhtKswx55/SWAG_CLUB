@@ -2,7 +2,7 @@
 <html lang="ru">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>SWAG CLUB</title>
 
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
@@ -18,7 +18,7 @@
     --line:#d1cdbe;
     --text:#1a1917;
     --text-dim:#666155;
-    --text-faint:#9e988a;
+    --text-faint: #8a8374;
     --accent:#ff3b20;
     --accent-dim:#ffdedb;
     --vh: 1vh;
@@ -223,7 +223,7 @@
 <div class="bg-vignette"></div>
 
 <div class="tag tl">N.01<br><b>EARLY ACCESS</b></div>
-<div class="tag tr"><b>SWAG</b> / 001<br>26.07</div>
+<div class="tag tr"><b>SWAG</b> / 001<br><span id="tagDate">--.--</span></div>
 <div class="spine">ЗАКРЫТЫЙ ФАН-КЛУБ</div>
 
 <div class="marquee">
@@ -311,6 +311,14 @@
     setTimeout(function(){
       screen.classList.add('in');
     }, 100);
+  }
+
+  var tagDateEl = document.getElementById('tagDate');
+  if (tagDateEl) {
+    var now = new Date();
+    var dd = String(now.getDate()).padStart(2, '0');
+    var mm = String(now.getMonth() + 1).padStart(2, '0');
+    tagDateEl.textContent = dd + '.' + mm;
   }
 
   var loginBtn = document.getElementById('tgLoginBtn');

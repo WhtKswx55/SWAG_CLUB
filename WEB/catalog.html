@@ -2,7 +2,7 @@
 <html lang="ru">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>SWAG CLUB — Каталог</title>
 
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
@@ -18,7 +18,7 @@
     --line: #d1cdbe;
     --text: #1a1917;
     --text-dim: #666155;
-    --text-faint: #9e988a;
+    --text-faint: #8a8374;
     --accent: #ff3b20;
     --accent-dim: #ffdedb;
     --vh: 1vh;
@@ -390,8 +390,8 @@
 <div class="bg-grain"></div>
 <div class="bg-vignette"></div>
 
-<!-- <div class="tag tl">N.02<br><b>КАТАЛОГ</b></div>
-<div class="tag tr"><b>SWAG</b> / 002<br>27.07</div> -->
+<div class="tag tl">N.02<br><b>КАТАЛОГ</b></div>
+<div class="tag tr"><b>SWAG</b> / 002<br><span id="tagDate">--.--</span></div>
 <div class="spine">ВЫБЕРИ КАТЕГОРИЮ</div>
 
 <button class="profile-btn" id="profileBtn" aria-label="Профиль">
@@ -466,6 +466,14 @@
     }, 100);
   }
 
+  var tagDateEl = document.getElementById('tagDate');
+  if (tagDateEl) {
+    var now = new Date();
+    var dd = String(now.getDate()).padStart(2, '0');
+    var mm = String(now.getMonth() + 1).padStart(2, '0');
+    tagDateEl.textContent = dd + '.' + mm;
+  }
+
   function navigateTo(url) {
     if (tg && tg.HapticFeedback) {
       try {
@@ -484,7 +492,7 @@
     { slug: 'haparovsk', name: 'Хапаровск', meta: 'ДРОП 02', hot: false, customUrl: 'HAPAROVSK/haparovsk.html' },
     { slug: 'norules', name: 'No Rules', meta: 'NEW', hot: false, customUrl: 'NO RULES/norules.html'},
     { slug: 'magbottle', name: 'MagBottle', meta: 'NEW', hot: false, customUrl: 'MAGBOTTLE/magbottle.html' },
-    { slug: 'semeyniki', name: 'Ох**ые<br>семейники', meta: 'ДМИТРИЙ АРНОЛЬД', hot: false, customUrl: 'category_soon.html' },
+    { slug: 'semeyniki', name: 'Ох**ые<br>семейники', meta: 'СКОРО', hot: false, customUrl: 'category_soon.html' },
     { slug: 'accessories', name: 'Аксессуары', meta: 'ПАТЧИ И МЕЛОЧЬ', hot: false, customUrl: 'category_soon.html' },
     { slug: 'other', name: 'Другое', meta: 'ДРОП 01', hot: false, customUrl: 'category_soon.html'}
   ];
