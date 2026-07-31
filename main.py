@@ -97,7 +97,7 @@ async def cmd_start(message: Message) -> None:
         inline_keyboard=[
             [
                 InlineKeyboardButton(
-                    text="🔥 Открыть SWAG CLUB",
+                    text="**Открыть SWAG CLUB**",
                     web_app=WebAppInfo(url=WEBAPP_URL),
                 )
             ],
@@ -107,7 +107,7 @@ async def cmd_start(message: Message) -> None:
                     callback_data="menu_subscribe",
                 ),
                 InlineKeyboardButton(
-                    text="📊 Мой статус",
+                    text="Мой статус",
                     callback_data="menu_status",
                 ),
             ],
@@ -222,8 +222,7 @@ async def process_successful_payment(message: Message) -> None:
         first_name=message.from_user.first_name,
     )
 
-    streak_note = "" if status.get("streak_kept",
-                                   True) else "\n_(стаж начат заново — подписка стояла дольше грейс-периода)_"
+    streak_note = "" if status.get("streak_kept", True) else "\n_(стаж начат заново — подписка стояла дольше грейс-периода)_"
     await message.answer(
         f"Оплата прошла ✅\n\n{status_text(status)}{streak_note}",
         parse_mode="Markdown",
@@ -297,10 +296,10 @@ async def on_startup(app: web.Application) -> None:
     await db.init_db()
     await setup_bot_commands(bot)
     log.info("Установка Webhook на адрес: %s", WEBHOOK_URL)
+    # Убрали жесткое ограничение allowed_updates, чтобы callback_query доходили до бота
     await bot.set_webhook(
         url=WEBHOOK_URL,
         drop_pending_updates=True,
-        allowed_updates=["message", "pre_checkout_query"],
     )
 
 
