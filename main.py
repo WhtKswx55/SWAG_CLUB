@@ -13,6 +13,7 @@ from aiogram.types import (
     LabeledPrice,
     Message,
     PreCheckoutQuery,
+    CallbackQuery,
     WebAppInfo,
     BotCommand,
 )
