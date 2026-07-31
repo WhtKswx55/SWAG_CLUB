@@ -63,3 +63,4 @@ window.SwagAuth = (function () {
     createInvoiceLink: createInvoiceLink,
   };
 })();
+
