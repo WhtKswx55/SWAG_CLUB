@@ -264,6 +264,47 @@
     animation: fadeUp 0.6s ease forwards 0.4s;
   }
 
+  .level-badge {
+    width: 100%;
+    max-width: 340px;
+    margin: 0 auto 14px;
+    padding: 10px 14px;
+    border: 1px solid var(--line);
+    border-radius: 3px;
+    background: var(--panel);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    opacity: 0;
+    animation: fadeUp 0.6s ease forwards 0.35s;
+  }
+
+  .level-badge.zero {
+    background: #1a1917;
+    border-color: #1a1917;
+  }
+
+  .level-badge-name {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    color: var(--text);
+    text-transform: uppercase;
+  }
+
+  .level-badge.zero .level-badge-name {
+    color: #f5f4ef;
+  }
+
+  .level-badge-sub {
+    font-size: 10px;
+    color: var(--text-faint);
+  }
+
+  .level-badge.zero .level-badge-sub {
+    color: #8f887a;
+  }
+
   .cat-row {
     position: relative;
     display: flex;
@@ -471,6 +512,11 @@
 
   <div class="divider"></div>
 
+  <div class="level-badge" id="levelBadge" style="display:none;">
+    <span class="level-badge-name mono" id="levelBadgeName"></span>
+    <span class="level-badge-sub mono" id="levelBadgeSub"></span>
+  </div>
+
   <div class="cat-list" id="catList"></div>
 
   <div class="decor-line-wrap">
@@ -542,14 +588,15 @@
       window.location.href = url;
     }, 250);
   }
-
+  
   var CATEGORIES = [
-    { slug: 'haparovsk', name: 'Хапаровск', meta: 'ДРОП 02', hot: false, customUrl: 'HAPAROVSK/haparovsk.html', requiredLevel: 1 },
-    { slug: 'norules', name: 'No Rules', meta: 'NEW', hot: false, customUrl: 'NO RULES/norules.html', requiredLevel: 1 },
-    { slug: 'magbottle', name: 'MagBottle', meta: 'NEW', hot: false, customUrl: 'MAGBOTTLE/magbottle.html', requiredLevel: 1 },
-    { slug: 'semeyniki', name: 'Ох**ые<br>семейники', meta: 'СКОРО', hot: false, customUrl: 'category_soon.html', requiredLevel: 0 },
-    { slug: 'accessories', name: 'Аксессуары', meta: 'ПАТЧИ И МЕЛОЧЬ', hot: false, customUrl: 'category_soon.html', requiredLevel: 0 },
-    { slug: 'other', name: 'Другое', meta: 'ДРОП 01', hot: false, customUrl: 'category_soon.html', requiredLevel: 0 }
+    { slug: 'haparovsk', name: 'Хапаровск', meta: 'ДРОП 02', hot: false, customUrl: 'HAPAROVSK/haparovsk.html', requiredLevel: 1, lockLabel: 'ZERO ACCESS' },
+    { slug: 'norules', name: 'No Rules', meta: 'NEW', hot: false, customUrl: 'NO RULES/norules.html', requiredLevel: 1, lockLabel: 'ZERO ACCESS' },
+    { slug: 'magbottle', name: 'MagBottle', meta: 'NEW', hot: false, customUrl: 'MAGBOTTLE/magbottle.html', requiredLevel: 1, lockLabel: 'ZERO ACCESS' },
+    { slug: 'secret', name: '??? Секретный дроп', meta: 'INSIDER+', hot: false, customUrl: 'category_soon.html', requiredLevel: 3, lockLabel: 'INSIDER+' },
+    { slug: 'semeyniki', name: 'Ох**ые<br>семейники', meta: 'СКОРО', hot: false, customUrl: 'category_soon.html', requiredLevel: 1, lockLabel: 'ZERO ACCESS' },
+    { slug: 'accessories', name: 'Аксессуары', meta: 'ПАТЧИ И МЕЛОЧЬ', hot: false, customUrl: 'category_soon.html', requiredLevel: 1, lockLabel: 'ZERO ACCESS' },
+    { slug: 'other', name: 'Другое', meta: 'ДРОП 01', hot: false, customUrl: 'category_soon.html', requiredLevel: 1, lockLabel: 'ZERO ACCESS' }
   ];
 
   var listEl = document.getElementById('catList');
@@ -557,7 +604,7 @@
 
   CATEGORIES.forEach(function(cat, i) {
     var row = document.createElement('button');
-    row.className = 'cat-row' + (cat.requiredLevel > 0 ? ' locked' : '');
+    row.className = 'cat-row locked';
     row.dataset.required = cat.requiredLevel;
 
     var isAccent = cat.hot || cat.meta === 'NEW';
@@ -567,7 +614,7 @@
       '<span class="cat-name">' + cat.name + '</span>' +
       '<span class="cat-meta mono' + (isAccent ? ' hot' : '') + '">' + cat.meta + '</span>' +
       '<span class="cat-arrow">→</span>' +
-      '<div class="lock-tape"><span>ТОЛЬКО ПО КОДУ</span></div>';
+      '<div class="lock-tape"><span>' + cat.lockLabel + '</span></div>';
 
     row.addEventListener('click', function() {
       var required = parseInt(row.dataset.required, 10) || 0;
@@ -592,18 +639,38 @@
     listEl.appendChild(row);
   });
 
-  function applyLocks(level) {
-    userLevel = level;
+  var levelBadge = document.getElementById('levelBadge');
+  var levelBadgeName = document.getElementById('levelBadgeName');
+  var levelBadgeSub = document.getElementById('levelBadgeSub');
+
+  function applyLocks(status) {
+    userLevel = (status && status.level) || 0;
+
     var rows = listEl.querySelectorAll('.cat-row');
     rows.forEach(function(row) {
       var required = parseInt(row.dataset.required, 10) || 0;
-      row.classList.toggle('locked', required > level);
+      row.classList.toggle('locked', required > userLevel);
     });
+
+    if (levelBadge && status) {
+      levelBadge.style.display = 'flex';
+      if (userLevel === 0) {
+        levelBadge.classList.add('zero');
+        levelBadgeName.textContent = 'ZERO ACCESS';
+        levelBadgeSub.textContent = 'НЕТ ПОДПИСКИ';
+      } else {
+        levelBadge.classList.remove('zero');
+        levelBadgeName.textContent = 'LVL' + userLevel + ' · ' + status.level_name.toUpperCase();
+        levelBadgeSub.textContent = status.next_level
+          ? ('ДО ' + status.next_level.toUpperCase() + ': ' + status.months_to_next_level + ' МЕС.')
+          : 'МАКСИМАЛЬНЫЙ УРОВЕНЬ';
+      }
+    }
   }
 
   if (window.SwagAuth) {
     window.SwagAuth.fetchStatus().then(function(status) {
-      applyLocks(status && status.level ? status.level : 0);
+      applyLocks(status);
     });
   }
 
