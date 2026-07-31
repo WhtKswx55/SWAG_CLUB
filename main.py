@@ -15,7 +15,6 @@ from aiogram.types import (
     PreCheckoutQuery,
     CallbackQuery,
     WebAppInfo,
-    BotCommand,
 )
 from aiogram.webhook.aiohttp_server import SimpleRequestHandler, setup_application
 
@@ -86,15 +85,6 @@ def get_subscribe_keyboard() -> InlineKeyboardMarkup:
             [InlineKeyboardButton(text="12 месяцев — 1500 ⭐", callback_data="buy_12")],
         ]
     )
-
-
-async def setup_bot_commands(bot: Bot) -> None:
-    commands = [
-        BotCommand(command="start", description="🏠 Главное меню и каталог"),
-        BotCommand(command="subscribe", description="💎 Оформить или продлить подписку"),
-        BotCommand(command="mystatus", description="📊 Мой статус и уровень в клубе"),
-    ]
-    await bot.set_my_commands(commands)
 
 
 @dp.message(CommandStart())
@@ -289,7 +279,6 @@ async def health(request: web.Request) -> web.Response:
 
 async def on_startup(app: web.Application) -> None:
     await db.init_db()
-    await setup_bot_commands(bot)
     log.info("Установка Webhook на адрес: %s", WEBHOOK_URL)
     await bot.set_webhook(
         url=WEBHOOK_URL,
