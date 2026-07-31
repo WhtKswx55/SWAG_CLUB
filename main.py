@@ -109,7 +109,7 @@ async def cmd_start(message: Message) -> None:
         inline_keyboard=[
             [
                 InlineKeyboardButton(
-                    text="🔥 Открыть SWAG CLUB",
+                    text="Открыть SWAG CLUB",
                     web_app=WebAppInfo(url=WEBAPP_URL),
                 )
             ]
