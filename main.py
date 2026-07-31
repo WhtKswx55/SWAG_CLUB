@@ -314,6 +314,7 @@ def create_app() -> web.Application:
     app.router.add_get("/", health)
     app.router.add_post("/api/status", api_status)
     app.router.add_post("/api/create-invoice-link", api_create_invoice_link)
+    app.router.add_get("/auth.js", lambda request: web.FileResponse(Path(__file__).parent / "auth.js"))
 
     web_dir = Path(__file__).parent / "WEB"
     if web_dir.exists():
