@@ -201,7 +201,7 @@
     max-width: 250px;
     line-height: 0.86;
     color: var(--text);
-    margin: 4px 0 6px;
+    margin: 2px 0 4px;
     opacity: 0;
     animation: fadeUp 0.6s ease forwards 0.2s;
   }
@@ -216,7 +216,7 @@
     width: 100%;
     max-width: 340px;
     height: 1px;
-    margin: 6px auto 4px;
+    margin: 4px auto 4px;
     background: repeating-linear-gradient(90deg, var(--line) 0 6px, transparent 6px 12px);
     opacity: 0;
     animation: fadeUp 0.6s ease forwards 0.3s;
@@ -233,47 +233,6 @@
     margin-top: 4px;
     opacity: 0;
     animation: fadeUp 0.6s ease forwards 0.4s;
-  }
-
-  .level-badge {
-    width: 100%;
-    max-width: 340px;
-    margin: 0 auto 14px;
-    padding: 10px 14px;
-    border: 1px solid var(--line);
-    border-radius: 3px;
-    background: var(--panel);
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    opacity: 0;
-    animation: fadeUp 0.6s ease forwards 0.35s;
-  }
-
-  .level-badge.zero {
-    background: #1a1917;
-    border-color: #1a1917;
-  }
-
-  .level-badge-name {
-    font-size: 11px;
-    font-weight: 700;
-    letter-spacing: 1px;
-    color: var(--text);
-    text-transform: uppercase;
-  }
-
-  .level-badge.zero .level-badge-name {
-    color: #f5f4ef;
-  }
-
-  .level-badge-sub {
-    font-size: 10px;
-    color: var(--text-faint);
-  }
-
-  .level-badge.zero .level-badge-sub {
-    color: #8f887a;
   }
 
   .cat-row {
@@ -481,11 +440,6 @@
 
   <div class="divider"></div>
 
-  <div class="level-badge" id="levelBadge" style="display:none;">
-    <span class="level-badge-name mono" id="levelBadgeName"></span>
-    <span class="level-badge-sub mono" id="levelBadgeSub"></span>
-  </div>
-
   <div class="cat-list" id="catList"></div>
 
   <div class="decor-line-wrap">
@@ -607,10 +561,6 @@
     listEl.appendChild(row);
   });
 
-  var levelBadge = document.getElementById('levelBadge');
-  var levelBadgeName = document.getElementById('levelBadgeName');
-  var levelBadgeSub = document.getElementById('levelBadgeSub');
-
   function applyLocks(status) {
     userLevel = (status && status.level) || 0;
 
@@ -619,21 +569,6 @@
       var required = parseInt(row.dataset.required, 10) || 0;
       row.classList.toggle('locked', required > userLevel);
     });
-
-    if (levelBadge && status) {
-      levelBadge.style.display = 'flex';
-      if (userLevel === 0) {
-        levelBadge.classList.add('zero');
-        levelBadgeName.textContent = 'ZERO ACCESS';
-        levelBadgeSub.textContent = 'НЕТ ПОДПИСКИ';
-      } else {
-        levelBadge.classList.remove('zero');
-        levelBadgeName.textContent = 'LVL' + userLevel + ' · ' + status.level_name.toUpperCase();
-        levelBadgeSub.textContent = status.next_level
-          ? ('ДО ' + status.next_level.toUpperCase() + ': ' + status.months_to_next_level + ' МЕС.')
-          : 'МАКСИМАЛЬНЫЙ УРОВЕНЬ';
-      }
-    }
   }
 
   if (window.SwagAuth) {
