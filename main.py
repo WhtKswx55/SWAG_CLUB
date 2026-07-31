@@ -6,13 +6,14 @@ from aiohttp import web
 from aiogram import Bot, Dispatcher, F
 from aiogram.filters import CommandStart, Command
 from aiogram.types import (
+    KeyboardButton,
+    ReplyKeyboardMarkup,
     InlineKeyboardButton,
     InlineKeyboardMarkup,
     LabeledPrice,
     Message,
     PreCheckoutQuery,
     WebAppInfo,
-    CallbackQuery,
     BotCommand,
 )
 from aiogram.webhook.aiohttp_server import SimpleRequestHandler, setup_application
@@ -66,6 +67,15 @@ def status_text(status: dict) -> str:
     )
 
 
+def get_main_reply_keyboard() -> ReplyKeyboardMarkup:
+    return ReplyKeyboardMarkup(
+        keyboard=[
+            [KeyboardButton(text="💎 Подписка"), KeyboardButton(text="📊 Мой статус")]
+        ],
+        resize_keyboard=True,
+    )
+
+
 def get_subscribe_keyboard() -> InlineKeyboardMarkup:
     return InlineKeyboardMarkup(
         inline_keyboard=[
@@ -93,44 +103,43 @@ async def cmd_start(message: Message) -> None:
         message.from_user.username,
         message.from_user.first_name,
     )
-    kb = InlineKeyboardMarkup(
+
+    webapp_kb = InlineKeyboardMarkup(
         inline_keyboard=[
             [
                 InlineKeyboardButton(
-                    text="**Открыть SWAG CLUB**",
+                    text="🔥 Открыть SWAG CLUB",
                     web_app=WebAppInfo(url=WEBAPP_URL),
                 )
-            ],
-            [
-                InlineKeyboardButton(
-                    text="💎 Подписка",
-                    callback_data="menu_subscribe",
-                ),
-                InlineKeyboardButton(
-                    text="Мой статус",
-                    callback_data="menu_status",
-                ),
-            ],
+            ]
         ]
     )
+
     await message.answer(
         "Добро пожаловать в **SWAG CLUB**.\n\n"
-        "Жми кнопку ниже, чтобы попасть в закрытый каталог.",
-        reply_markup=kb,
+        "Используйте кнопки меню внизу или откройте каталог ниже:",
+        reply_markup=get_main_reply_keyboard(),
         parse_mode="Markdown",
     )
 
+    await message.answer(
+        "Нажмите кнопку, чтобы зайти в закрытый каталог:",
+        reply_markup=webapp_kb,
+    )
 
-@dp.message(Command("mystatus"))
-async def cmd_mystatus(message: Message) -> None:
+
+@dp.message(Command("mystatus"), F.text.in_({"📊 Мой статус", "Мой статус"}))
+@dp.message(F.text == "📊 Мой статус")
+async def text_mystatus(message: Message) -> None:
     status = await db.get_status(
         message.from_user.id, message.from_user.username, message.from_user.first_name
     )
     await message.answer(status_text(status), parse_mode="Markdown")
 
 
-@dp.message(Command("subscribe"))
-async def cmd_subscribe(message: Message) -> None:
+@dp.message(Command("subscribe"), F.text.in_({"💎 Подписка"}))
+@dp.message(F.text == "💎 Подписка")
+async def text_subscribe(message: Message) -> None:
     await message.answer(
         "💎 **Оформление подписки SWAG CLUB**\n\nВыберите срок подписки:",
         reply_markup=get_subscribe_keyboard(),
@@ -159,25 +168,6 @@ async def cmd_testsub(message: Message) -> None:
         f"🛠 **Тестовая подписка выдана на {months} мес.**\n\n{status_text(status)}",
         parse_mode="Markdown",
     )
-
-
-@dp.callback_query(F.data == "menu_subscribe")
-async def cb_menu_subscribe(callback: CallbackQuery) -> None:
-    await callback.message.answer(
-        "💎 **Оформление подписки SWAG CLUB**\n\nВыберите срок подписки:",
-        reply_markup=get_subscribe_keyboard(),
-        parse_mode="Markdown",
-    )
-    await callback.answer()
-
-
-@dp.callback_query(F.data == "menu_status")
-async def cb_menu_status(callback: CallbackQuery) -> None:
-    status = await db.get_status(
-        callback.from_user.id, callback.from_user.username, callback.from_user.first_name
-    )
-    await callback.message.answer(status_text(status), parse_mode="Markdown")
-    await callback.answer()
 
 
 @dp.callback_query(F.data.startswith("buy_"))
@@ -222,7 +212,8 @@ async def process_successful_payment(message: Message) -> None:
         first_name=message.from_user.first_name,
     )
 
-    streak_note = "" if status.get("streak_kept", True) else "\n_(стаж начат заново — подписка стояла дольше грейс-периода)_"
+    streak_note = "" if status.get("streak_kept",
+                                   True) else "\n_(стаж начат заново — подписка стояла дольше грейс-периода)_"
     await message.answer(
         f"Оплата прошла ✅\n\n{status_text(status)}{streak_note}",
         parse_mode="Markdown",
@@ -231,7 +222,10 @@ async def process_successful_payment(message: Message) -> None:
 
 @dp.message(F.text)
 async def fallback(message: Message) -> None:
-    await message.answer("Набери /start, чтобы открыть SWAG CLUB, или /subscribe, чтобы оформить подписку.")
+    await message.answer(
+        "Используйте кнопки меню ниже или команду /start для доступа к SWAG CLUB.",
+        reply_markup=get_main_reply_keyboard()
+    )
 
 
 def _json_error(message: str, status: int = 400) -> web.Response:
@@ -296,7 +290,6 @@ async def on_startup(app: web.Application) -> None:
     await db.init_db()
     await setup_bot_commands(bot)
     log.info("Установка Webhook на адрес: %s", WEBHOOK_URL)
-    # Убрали жесткое ограничение allowed_updates, чтобы callback_query доходили до бота
     await bot.set_webhook(
         url=WEBHOOK_URL,
         drop_pending_updates=True,
