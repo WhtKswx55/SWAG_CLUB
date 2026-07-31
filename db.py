@@ -40,6 +40,7 @@ def _connect() -> sqlite3.Connection:
 
 
 def _init_sync() -> None:
+    DB_PATH.parent.mkdir(parents=True, exist_ok=True)
     with closing(_connect()) as conn, conn:
         conn.execute(
             """
@@ -73,7 +74,11 @@ async def init_db() -> None:
     await asyncio.to_thread(_init_sync)
 
 
-def compute_level(subscribed_since: Optional[datetime], active_until: Optional[datetime], now: Optional[datetime] = None) -> dict:
+def compute_level(
+    subscribed_since: Optional[datetime],
+    active_until: Optional[datetime],
+    now: Optional[datetime] = None,
+) -> dict:
     now = now or _now()
 
     if not active_until or not subscribed_since or now > active_until:
@@ -95,7 +100,9 @@ def compute_level(subscribed_since: Optional[datetime], active_until: Optional[d
     level = 1
     for lvl in LEVEL_ORDER:
         meta = LEVELS[lvl]
-        if tenure_months >= meta["min_months"] and (meta["max_months"] is None or tenure_months < meta["max_months"]):
+        if tenure_months >= meta["min_months"] and (
+            meta["max_months"] is None or tenure_months < meta["max_months"]
+        ):
             level = lvl
             break
 
@@ -119,9 +126,13 @@ def compute_level(subscribed_since: Optional[datetime], active_until: Optional[d
     }
 
 
-def _get_or_create_user_sync(tg_id: int, username: Optional[str], first_name: Optional[str]) -> sqlite3.Row:
+def _get_or_create_user_sync(
+    tg_id: int, username: Optional[str], first_name: Optional[str]
+) -> sqlite3.Row:
     with closing(_connect()) as conn, conn:
-        row = conn.execute("SELECT * FROM users WHERE tg_id = ?", (tg_id,)).fetchone()
+        row = conn.execute(
+            "SELECT * FROM users WHERE tg_id = ?", (tg_id,)
+        ).fetchone()
         now = _iso(_now())
         if row is None:
             conn.execute(
@@ -129,7 +140,9 @@ def _get_or_create_user_sync(tg_id: int, username: Optional[str], first_name: Op
                 "VALUES (?, ?, ?, NULL, NULL, ?, ?)",
                 (tg_id, username, first_name, now, now),
             )
-            row = conn.execute("SELECT * FROM users WHERE tg_id = ?", (tg_id,)).fetchone()
+            row = conn.execute(
+                "SELECT * FROM users WHERE tg_id = ?", (tg_id,)
+            ).fetchone()
         else:
             conn.execute(
                 "UPDATE users SET username = ?, first_name = ?, updated_at = ? WHERE tg_id = ?",
@@ -138,16 +151,34 @@ def _get_or_create_user_sync(tg_id: int, username: Optional[str], first_name: Op
         return row
 
 
-async def get_or_create_user(tg_id: int, username: Optional[str] = None, first_name: Optional[str] = None) -> dict:
-    row = await asyncio.to_thread(_get_or_create_user_sync, tg_id, username, first_name)
+async def get_or_create_user(
+    tg_id: int,
+    username: Optional[str] = None,
+    first_name: Optional[str] = None,
+) -> dict:
+    row = await asyncio.to_thread(
+        _get_or_create_user_sync, tg_id, username, first_name
+    )
     return dict(row)
 
 
-async def get_status(tg_id: int, username: Optional[str] = None, first_name: Optional[str] = None) -> dict:
+async def get_user_status(
+    tg_id: int,
+    username: Optional[str] = None,
+    first_name: Optional[str] = None,
+) -> dict:
     user = await get_or_create_user(tg_id, username, first_name)
     subscribed_since = _parse(user["subscribed_since"])
     active_until = _parse(user["active_until"])
     return compute_level(subscribed_since, active_until)
+
+
+async def get_status(
+    tg_id: int,
+    username: Optional[str] = None,
+    first_name: Optional[str] = None,
+) -> dict:
+    return await get_user_status(tg_id, username, first_name)
 
 
 def _extend_subscription_sync(
@@ -161,7 +192,9 @@ def _extend_subscription_sync(
 ) -> dict:
     now = _now()
     with closing(_connect()) as conn, conn:
-        row = conn.execute("SELECT * FROM users WHERE tg_id = ?", (tg_id,)).fetchone()
+        row = conn.execute(
+            "SELECT * FROM users WHERE tg_id = ?", (tg_id,)
+        ).fetchone()
         now_iso = _iso(now)
 
         if row is None:
@@ -170,7 +203,9 @@ def _extend_subscription_sync(
                 "VALUES (?, ?, ?, NULL, NULL, ?, ?)",
                 (tg_id, username, first_name, now_iso, now_iso),
             )
-            row = conn.execute("SELECT * FROM users WHERE tg_id = ?", (tg_id,)).fetchone()
+            row = conn.execute(
+                "SELECT * FROM users WHERE tg_id = ?", (tg_id,)
+            ).fetchone()
 
         prev_subscribed_since = _parse(row["subscribed_since"])
         prev_active_until = _parse(row["active_until"])
@@ -188,12 +223,21 @@ def _extend_subscription_sync(
             subscribed_since = now
             extend_from = now
 
-        new_active_until = extend_from + timedelta(days=SUB_PERIOD_DAYS * months)
+        new_active_until = extend_from + timedelta(
+            days=SUB_PERIOD_DAYS * months
+        )
 
         conn.execute(
             "UPDATE users SET subscribed_since = ?, active_until = ?, username = ?, first_name = ?, updated_at = ? "
             "WHERE tg_id = ?",
-            (_iso(subscribed_since), _iso(new_active_until), username, first_name, now_iso, tg_id),
+            (
+                _iso(subscribed_since),
+                _iso(new_active_until),
+                username,
+                first_name,
+                now_iso,
+                tg_id,
+            ),
         )
 
         conn.execute(
@@ -217,5 +261,12 @@ async def extend_subscription(
     first_name: Optional[str] = None,
 ) -> dict:
     return await asyncio.to_thread(
-        _extend_subscription_sync, tg_id, months, amount, currency, charge_id, username, first_name
+        _extend_subscription_sync,
+        tg_id,
+        months,
+        amount,
+        currency,
+        charge_id,
+        username,
+        first_name,
     )

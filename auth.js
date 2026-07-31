@@ -8,7 +8,15 @@ window.SwagAuth = (function () {
   async function fetchStatus() {
     var initData = getInitData();
     if (!initData) {
-      return { ok: false, level: 0, level_name: "Гость", has_access: false, offline: true };
+      return { 
+        ok: false, 
+        level: 0, 
+        level_name: "ZERO ACCESS", 
+        has_access: false, 
+        days_left: 0,
+        tenure_months: 0,
+        offline: true 
+      };
     }
     try {
       var res = await fetch("/api/status", {
@@ -19,7 +27,15 @@ window.SwagAuth = (function () {
       var data = await res.json();
       return data;
     } catch (e) {
-      return { ok: false, level: 0, level_name: "Гость", has_access: false, error: true };
+      return { 
+        ok: false, 
+        level: 0, 
+        level_name: "ZERO ACCESS", 
+        has_access: false, 
+        days_left: 0,
+        tenure_months: 0,
+        error: true 
+      };
     }
   }
 

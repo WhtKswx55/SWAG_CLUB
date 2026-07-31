@@ -6,6 +6,7 @@
 <title>SWAG CLUB — Личный Кабинет</title>
 
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
+<script src="js/auth.js"></script>
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;600;700&display=swap" rel="stylesheet">
@@ -37,12 +38,6 @@
     background-image:url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="140" height="140"><filter id="n"><feTurbulence type="fractalNoise" baseFrequency="0.85" numOctaves="2" stitchTiles="stitch"/></filter><rect width="100%25" height="100%25" filter="url(%23n)"/></svg>');
   }
   .bg-vignette{ position:fixed; inset:0; z-index:0; pointer-events:none; box-shadow: inset 0 0 160px 50px rgba(0,0,0,0.05); }
-
-  .tag{ position:fixed; z-index:3; font-size:10px; letter-spacing:1px; color:var(--text-faint); pointer-events:none; }
-  .tag.tl{ top:16px; left:18px; text-align:left; }
-  .tag.tl b{ color:var(--text-dim); }
-  .tag.tr{ top:16px; right:18px; text-align:right; }
-  .tag.tr b{ color:var(--text-dim); }
 
   .spine{
     position:fixed; z-index:3; left:8px; top:50%; transform:translateY(-50%) rotate(-90deg) translateX(50%);
@@ -181,7 +176,7 @@
     width:100%; height:4px; background:var(--panel2); border-radius:2px;
     overflow:hidden; margin-top:10px;
   }
-  .progress-fill{ height:100%; background:var(--accent); width:76%; }
+  .progress-fill{ height:100%; background:var(--accent); width:0%; transition: width 0.4s ease; }
 
   .lvl-name{
     font-family:'Oswald', sans-serif; font-weight:700; font-size:18px;
@@ -240,8 +235,6 @@
 <div class="bg-grain"></div>
 <div class="bg-vignette"></div>
 
-<!-- <div class="tag tl">N.03<br><b>ПРОФИЛЬ</b></div>
-<div class="tag tr"><b>SWAG</b> / 003<br>27.07</div> -->
 <div class="spine">ЛИЧНЫЙ КАБИНЕТ</div>
 
 <button class="back-btn" id="backBtn" aria-label="Назад">
@@ -281,27 +274,27 @@
     <div class="data-row">
       <div class="data-top">
         <span class="data-label">Подписка</span>
-        <span class="data-value accent">Осталось 23 дня</span>
+        <span class="data-value accent" id="subDaysLeft">Загрузка...</span>
       </div>
-      <div class="progress-line"><div class="progress-fill"></div></div>
-      <div class="data-note mono">Активна до 27.08.2026 · ранний доступ открыт</div>
+      <div class="progress-line"><div class="progress-fill" id="subProgress"></div></div>
+      <div class="data-note mono" id="subNote">Проверяем статус...</div>
     </div>
 
     <div class="data-row">
       <div class="data-top">
         <span class="data-label">Уровень</span>
-        <span class="data-value">2 месяца</span>
+        <span class="data-value" id="subTenure">0 месяцев</span>
       </div>
-      <div class="lvl-name">Drop Hunter</div>
-      <div class="data-note">Ранний выкуп за 14 дней + бронь низких серийных номеров мерча (#001–#010).</div>
+      <div class="lvl-name" id="lvlName">ZERO ACCESS</div>
+      <div class="data-note" id="lvlNote">Оформите подписку, чтобы получить доступ к закрытому каталогу.</div>
     </div>
 
     <div class="data-row">
       <div class="data-top">
         <span class="data-label">Код подписки</span>
-        <span class="data-value green">Привязан к ID</span>
+        <span class="data-value green" id="boundStatus">Привязан к ID</span>
       </div>
-      <div class="lvl-name mono" id="boundCode" style="font-size:15px; letter-spacing:1px;">SWAG-769536-X7</div>
+      <div class="lvl-name mono" id="boundCode" style="font-size:15px; letter-spacing:1px;">SWAG-000000-X7</div>
     </div>
 
   </div>
@@ -318,7 +311,7 @@
   <div class="divider"></div>
 
   <button class="btn-renew" id="renewBtn">
-    <span>Продлить подписку в боте</span>
+    <span>Оформить / Продлить подписку в боте</span>
     <span>→</span>
   </button>
 
@@ -369,6 +362,50 @@
     } else {
       avatarBox.innerHTML = defaultProfileIcon;
     }
+  }
+
+  if (window.SwagAuth) {
+    window.SwagAuth.fetchStatus().then(function(status) {
+      if (!status || status.error) return;
+
+      var subDaysLeft = document.getElementById('subDaysLeft');
+      var subProgress = document.getElementById('subProgress');
+      var subNote = document.getElementById('subNote');
+      var subTenure = document.getElementById('subTenure');
+      var lvlName = document.getElementById('lvlName');
+      var lvlNote = document.getElementById('lvlNote');
+
+      if (status.has_access) {
+        subDaysLeft.textContent = 'Осталось ' + status.days_left + ' дн.';
+        subDaysLeft.className = 'data-value accent';
+        
+        var percent = Math.min(100, Math.max(0, (status.days_left / 30) * 100));
+        subProgress.style.width = percent + '%';
+        
+        var untilDate = status.active_until ? status.active_until.slice(0, 10) : '';
+        subNote.textContent = 'Активна до ' + untilDate + ' · ранний доступ открыт';
+      } else {
+        subDaysLeft.textContent = 'Нет подписки';
+        subDaysLeft.className = 'data-value';
+        subProgress.style.width = '0%';
+        subNote.textContent = 'Подписка не активна · доступ закрыт';
+      }
+
+      subTenure.textContent = (status.tenure_months || 0) + ' мес. стажа';
+      lvlName.textContent = status.level_name || 'ZERO ACCESS';
+
+      if (status.level === 0) {
+        lvlNote.textContent = 'Оформите подписку, чтобы получить доступ к эксклюзивным дропам.';
+      } else if (status.level === 1) {
+        lvlNote.textContent = 'Ранний доступ к стандартным дропам за 7 дней до релиза.';
+      } else if (status.level === 2) {
+        lvlNote.textContent = 'Ранний выкуп за 14 дней + бронь серийных номеров (#001–#010).';
+      } else if (status.level === 3) {
+        lvlNote.textContent = 'Доступ к закрытым инсайдерским коллекциям.';
+      } else if (status.level === 4) {
+        lvlNote.textContent = 'Максимальный статус в клубе и персональные условия.';
+      }
+    });
   }
 
   function navigateTo(url) {
@@ -422,7 +459,14 @@
   if (renewBtn) {
     renewBtn.addEventListener('click', function(){
       if (tg && tg.HapticFeedback) { try { tg.HapticFeedback.impactOccurred('medium'); } catch(e){} }
-      window.open('https://t.me/SwagClubEA_bot?start=subscribe', '_blank');
+      
+      var subscribeUrl = 'https://t.me/SwagClubEA_bot?start=subscribe';
+      if (tg && tg.openTelegramLink) {
+        tg.openTelegramLink(subscribeUrl);
+        tg.close();
+      } else {
+        window.location.href = subscribeUrl;
+      }
     });
   }
 })();
