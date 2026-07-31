@@ -12,6 +12,8 @@ from aiogram.types import (
     Message,
     PreCheckoutQuery,
     WebAppInfo,
+    CallbackQuery,
+    BotCommand,
 )
 from aiogram.webhook.aiohttp_server import SimpleRequestHandler, setup_application
 
@@ -52,36 +54,37 @@ def is_admin(tg_id: int) -> bool:
     return tg_id in ADMIN_IDS
 
 
-def invoice_params(months: int) -> dict:
-    if PAYMENT_PROVIDER_TOKEN:
-        amount = SUBSCRIPTION_PRICE_RUB * months
-        return {
-            "provider_token": PAYMENT_PROVIDER_TOKEN,
-            "currency": "RUB",
-            "prices": [LabeledPrice(label=f"Подписка SWAG CLUB — {months} мес.", amount=amount * 100)],
-        }
-    amount = SUBSCRIPTION_PRICE_STARS * months
-    return {
-        "provider_token": "",
-        "currency": "XTR",
-        "prices": [LabeledPrice(label=f"Подписка SWAG CLUB — {months} мес.", amount=amount)],
-    }
-
-
 def status_text(status: dict) -> str:
-    if not status["has_access"]:
-        return "Статус: **ZERO ACCESS**\nПодписки нет. Оформи, чтобы открыть каталог."
+    if not status or not status.get("has_access"):
+        return "❌ **Подписка не активна**\nСтатус: `ZERO ACCESS`\n\nОформи подписку, чтобы открыть каталог."
 
-    lines = [
-        f"Уровень: **{status['level_name']}**",
-        f"Стаж подписки: {status['tenure_months']} мес.",
-        f"Активна до: {status['active_until'][:10]} ({status['days_left']} дн. осталось)",
+    return (
+        f"✅ **Подписка активна**\n"
+        f"Уровень: **{status.get('level_name', 'Member')}**\n"
+        f"Стаж подписки: {status.get('tenure_months', 0)} мес.\n"
+        f"Активна до: {str(status.get('active_until', ''))[:10]} ({status.get('days_left', 0)} дн. осталось)"
+    )
+
+
+def get_subscribe_keyboard() -> InlineKeyboardMarkup:
+    return InlineKeyboardMarkup(
+        inline_keyboard=[
+            [InlineKeyboardButton(text="1 месяц — 150 ⭐", callback_data="buy_1")],
+            [InlineKeyboardButton(text="3 месяца — 420 ⭐", callback_data="buy_3")],
+            [InlineKeyboardButton(text="6 месяцев — 800 ⭐", callback_data="buy_6")],
+            [InlineKeyboardButton(text="12 месяцев — 1500 ⭐", callback_data="buy_12")],
+        ]
+    )
+
+
+async def setup_bot_commands(bot: Bot) -> None:
+    commands = [
+        BotCommand(command="start", description="🏠 Главное меню и каталог"),
+        BotCommand(command="subscribe", description="💎 Оформить или продлить подписку"),
+        BotCommand(command="mystatus", description="📊 Мой статус и уровень в клубе"),
     ]
-    if status["next_level"]:
-        lines.append(f"До уровня «{status['next_level']}»: {status['months_to_next_level']} мес.")
-    else:
-        lines.append("Это максимальный уровень.")
-    return "\n".join(lines)
+    await bot.set_my_commands(commands)
+
 
 @dp.message(CommandStart())
 async def cmd_start(message: Message) -> None:
@@ -94,16 +97,27 @@ async def cmd_start(message: Message) -> None:
         inline_keyboard=[
             [
                 InlineKeyboardButton(
-                    text="Открыть SWAG CLUB",
+                    text="🔥 Открыть SWAG CLUB",
                     web_app=WebAppInfo(url=WEBAPP_URL),
                 )
-            ]
+            ],
+            [
+                InlineKeyboardButton(
+                    text="💎 Подписка",
+                    callback_data="menu_subscribe",
+                ),
+                InlineKeyboardButton(
+                    text="📊 Мой статус",
+                    callback_data="menu_status",
+                ),
+            ],
         ]
     )
     await message.answer(
-        "Добро пожаловать в SWAG CLUB.\n\n"
+        "Добро пожаловать в **SWAG CLUB**.\n\n"
         "Жми кнопку ниже, чтобы попасть в закрытый каталог.",
         reply_markup=kb,
+        parse_mode="Markdown",
     )
 
 
@@ -117,17 +131,71 @@ async def cmd_mystatus(message: Message) -> None:
 
 @dp.message(Command("subscribe"))
 async def cmd_subscribe(message: Message) -> None:
-    params = invoice_params(months=1)
-    await bot.send_invoice(
-        chat_id=message.chat.id,
-        title="Подписка SWAG CLUB — 1 месяц",
-        description=(
-            "Открывает программу лояльности: ранний доступ к каталогу, "
-            "бронь серийных номеров, секретные дропы и статусы — по мере стажа подписки."
-        ),
-        payload="sub_1",
-        **params,
+    await message.answer(
+        "💎 **Оформление подписки SWAG CLUB**\n\nВыберите срок подписки:",
+        reply_markup=get_subscribe_keyboard(),
+        parse_mode="Markdown",
     )
+
+
+@dp.message(Command("testsub"))
+async def cmd_testsub(message: Message) -> None:
+    if not is_admin(message.from_user.id):
+        return
+
+    args = message.text.split()
+    months = int(args[1]) if len(args) > 1 and args[1].isdigit() else 1
+
+    status = await db.extend_subscription(
+        tg_id=message.from_user.id,
+        months=months,
+        amount=0,
+        currency="TEST",
+        charge_id="test_charge",
+        username=message.from_user.username,
+        first_name=message.from_user.first_name,
+    )
+    await message.answer(
+        f"🛠 **Тестовая подписка выдана на {months} мес.**\n\n{status_text(status)}",
+        parse_mode="Markdown",
+    )
+
+
+@dp.callback_query(F.data == "menu_subscribe")
+async def cb_menu_subscribe(callback: CallbackQuery) -> None:
+    await callback.message.answer(
+        "💎 **Оформление подписки SWAG CLUB**\n\nВыберите срок подписки:",
+        reply_markup=get_subscribe_keyboard(),
+        parse_mode="Markdown",
+    )
+    await callback.answer()
+
+
+@dp.callback_query(F.data == "menu_status")
+async def cb_menu_status(callback: CallbackQuery) -> None:
+    status = await db.get_status(
+        callback.from_user.id, callback.from_user.username, callback.from_user.first_name
+    )
+    await callback.message.answer(status_text(status), parse_mode="Markdown")
+    await callback.answer()
+
+
+@dp.callback_query(F.data.startswith("buy_"))
+async def cb_buy(callback: CallbackQuery) -> None:
+    months = int(callback.data.split("_")[1])
+    prices_map = {1: 150, 3: 420, 6: 800, 12: 1500}
+    amount = prices_map.get(months, 150)
+
+    await bot.send_invoice(
+        chat_id=callback.message.chat.id,
+        title=f"Подписка SWAG CLUB — {months} мес.",
+        description="Ранний доступ к закрытому каталогу, бронь номеров и статусы в клубе.",
+        payload=f"sub_{months}",
+        provider_token="",
+        currency="XTR",
+        prices=[LabeledPrice(label=f"{months} мес. подписки", amount=amount)],
+    )
+    await callback.answer()
 
 
 @dp.pre_checkout_query()
@@ -154,7 +222,8 @@ async def process_successful_payment(message: Message) -> None:
         first_name=message.from_user.first_name,
     )
 
-    streak_note = "" if status.get("streak_kept", True) else "\n_(стаж начат заново — подписка стояла дольше грейс-периода)_"
+    streak_note = "" if status.get("streak_kept",
+                                   True) else "\n_(стаж начат заново — подписка стояла дольше грейс-периода)_"
     await message.answer(
         f"Оплата прошла ✅\n\n{status_text(status)}{streak_note}",
         parse_mode="Markdown",
@@ -164,6 +233,7 @@ async def process_successful_payment(message: Message) -> None:
 @dp.message(F.text)
 async def fallback(message: Message) -> None:
     await message.answer("Набери /start, чтобы открыть SWAG CLUB, или /subscribe, чтобы оформить подписку.")
+
 
 def _json_error(message: str, status: int = 400) -> web.Response:
     return web.json_response({"ok": False, "message": message}, status=status)
@@ -199,17 +269,18 @@ async def api_create_invoice_link(request: web.Request) -> web.Response:
         return _json_error("Не удалось подтвердить Telegram-аккаунт", status=401)
 
     months = int(body.get("months", 1) or 1)
-    params = invoice_params(months)
+
+    prices_map = {1: 150, 3: 420, 6: 800, 12: 1500}
+    amount = prices_map.get(months, 150)
 
     try:
         link = await bot.create_invoice_link(
             title=f"Подписка SWAG CLUB — {months} мес.",
-            description=(
-                "Открывает программу лояльности: ранний доступ к каталогу, "
-                "бронь серийных номеров, секретные дропы и статусы."
-            ),
+            description="Ранний доступ к закрытому каталогу, бронь номеров и статусы.",
             payload=f"sub_{months}",
-            **params,
+            provider_token="",
+            currency="XTR",
+            prices=[LabeledPrice(label=f"{months} мес. подписки", amount=amount)],
         )
     except Exception as e:
         log.error("Ошибка создания инвойса: %s", e)
@@ -221,8 +292,10 @@ async def api_create_invoice_link(request: web.Request) -> web.Response:
 async def health(request: web.Request) -> web.Response:
     return web.Response(text="ok")
 
+
 async def on_startup(app: web.Application) -> None:
     await db.init_db()
+    await setup_bot_commands(bot)
     log.info("Установка Webhook на адрес: %s", WEBHOOK_URL)
     await bot.set_webhook(
         url=WEBHOOK_URL,
