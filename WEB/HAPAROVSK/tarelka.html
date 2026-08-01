@@ -635,7 +635,13 @@
       if (tg && tg.HapticFeedback) {
         try { tg.HapticFeedback.impactOccurred('medium'); } catch(e) {}
       }
-      alert('Заказ товара "ТАРЕЛКА (полянка)"');
+      var orderData = {
+        product: 'Тарелка (полянка)',
+        price: 1500,
+        options: {}
+      };
+      try { sessionStorage.setItem('swag_order', JSON.stringify(orderData)); } catch(e) {}
+      navigateTo('../order.html' + currentQuery);
     });
   }
 })();

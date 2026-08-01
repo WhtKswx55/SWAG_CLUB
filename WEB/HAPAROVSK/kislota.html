@@ -665,7 +665,13 @@
       if (tg && tg.HapticFeedback) {
         try { tg.HapticFeedback.impactOccurred('medium'); } catch(e) {}
       }
-      alert('Заказ товара "КИСЛОТА", размер: ' + selectedSize);
+      var orderData = {
+        product: 'Кислота',
+        price: 8500,
+        options: { 'Размер': selectedSize }
+      };
+      try { sessionStorage.setItem('swag_order', JSON.stringify(orderData)); } catch(e) {}
+      navigateTo('../order.html' + currentQuery);
     });
   }
 })();
