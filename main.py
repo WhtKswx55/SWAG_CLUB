@@ -1,7 +1,10 @@
+import asyncio
+import json
 import logging
 import os
 from pathlib import Path
 
+import aiohttp
 from aiohttp import web
 from aiogram import Bot, Dispatcher, F
 from aiogram.filters import CommandStart, Command
@@ -146,17 +149,19 @@ async def cmd_testsub(message: Message) -> None:
     args = message.text.split()
     months = int(args[1]) if len(args) > 1 and args[1].isdigit() else 1
 
-    status = await db.extend_subscription(
-        tg_id=message.from_user.id,
+    code = await db.generate_access_code(
         months=months,
-        amount=0,
-        currency="TEST",
-        charge_id="test_charge",
-        username=message.from_user.username,
-        first_name=message.from_user.first_name,
+        note="testsub",
+        created_by=message.from_user.id,
     )
+
     await message.answer(
-        f"🛠 **Тестовая подписка выдана на {months} мес.**\n\n{status_text(status)}",
+        f"🎟 **Тестовый код доступа сгенерирован**\n\n"
+        f"Код: `{code}`\n"
+        f"Срок: {months} мес.\n\n"
+        f"Передай этот код тестовому пользователю — он вводит его в приложении "
+        f"(кнопка «у меня есть код доступа» на входе или «Ввести новый код подписки» в профиле). "
+        f"Код одноразовый и привязывается к тому, кто его активирует.",
         parse_mode="Markdown",
     )
 
@@ -273,20 +278,157 @@ async def api_create_invoice_link(request: web.Request) -> web.Response:
     return web.json_response({"ok": True, "link": link})
 
 
+async def api_redeem_code(request: web.Request) -> web.Response:
+    try:
+        body = await request.json()
+    except Exception:
+        return _json_error("Некорректный запрос")
+
+    tg_user = extract_tg_user(body.get("initData", ""), BOT_TOKEN)
+    if not tg_user:
+        return _json_error("Не удалось подтвердить Telegram-аккаунт", status=401)
+
+    code = str(body.get("code", "")).strip()
+    if not code:
+        return _json_error("Введите код")
+
+    result = await db.redeem_code(
+        tg_user["id"], code, tg_user.get("username"), tg_user.get("first_name")
+    )
+
+    if result.get("ok"):
+        try:
+            await bot.send_message(
+                tg_user["id"],
+                f"✅ Код `{result.get('code')}` активирован.\n\n{status_text(result)}",
+                parse_mode="Markdown",
+            )
+        except Exception as e:
+            log.warning("Не удалось отправить подтверждение кода: %s", e)
+
+    return web.json_response(result)
+
+
+async def api_create_order(request: web.Request) -> web.Response:
+    try:
+        body = await request.json()
+    except Exception:
+        return _json_error("Некорректный запрос")
+
+    tg_user = extract_tg_user(body.get("initData", ""), BOT_TOKEN)
+    if not tg_user:
+        return _json_error("Не удалось подтвердить Telegram-аккаунт", status=401)
+
+    required_fields = [
+        "telegram_handle", "first_name", "last_name", "country",
+        "city", "address", "has_pvz", "phone", "email",
+    ]
+    missing = [f for f in required_fields if not str(body.get(f, "")).strip()]
+    if missing:
+        return _json_error("Заполните все обязательные поля")
+
+    if not body.get("agree"):
+        return _json_error("Нужно подтвердить согласие с условиями")
+
+    options = body.get("options") or {}
+    order_row = {
+        "tg_id": tg_user["id"],
+        "username": tg_user.get("username"),
+        "product": body.get("product", "—"),
+        "price": body.get("price", 0),
+        "options_json": json.dumps(options, ensure_ascii=False),
+        "telegram_handle": body.get("telegram_handle"),
+        "first_name": body.get("first_name"),
+        "last_name": body.get("last_name"),
+        "country": body.get("country"),
+        "city": body.get("city"),
+        "address": body.get("address"),
+        "has_pvz": body.get("has_pvz"),
+        "phone": body.get("phone"),
+        "email": body.get("email"),
+    }
+
+    order_id = await db.create_order(order_row)
+
+    options_lines = "\n".join(f"• {k}: {v}" for k, v in options.items()) or "—"
+    admin_text = (
+        f"🛍 **Новый заказ #{order_id}**\n\n"
+        f"Товар: **{order_row['product']}**\n"
+        f"Цена: {order_row['price']} ₽\n"
+        f"Опции:\n{options_lines}\n\n"
+        f"Telegram: {order_row['telegram_handle']} (id {tg_user['id']})\n"
+        f"Имя: {order_row['first_name']} {order_row['last_name']}\n"
+        f"Страна/город: {order_row['country']}, {order_row['city']}\n"
+        f"Адрес: {order_row['address']}\n"
+        f"ПВЗ Яндекс: {order_row['has_pvz']}\n"
+        f"Телефон: {order_row['phone']}\n"
+        f"Email: {order_row['email']}"
+    )
+    for admin_id in ADMIN_IDS:
+        try:
+            await bot.send_message(admin_id, admin_text, parse_mode="Markdown")
+        except Exception as e:
+            log.warning("Не удалось уведомить админа %s о заказе: %s", admin_id, e)
+
+    try:
+        await bot.send_message(
+            tg_user["id"],
+            f"✅ Заказ #{order_id} принят!\n\nТовар: {order_row['product']}\n"
+            f"Цена: {order_row['price']} ₽\n\nМы свяжемся с тобой в ближайшее время для подтверждения.",
+            parse_mode="Markdown",
+        )
+    except Exception as e:
+        log.warning("Не удалось отправить подтверждение заказа пользователю: %s", e)
+
+    return web.json_response({"ok": True, "order_id": order_id})
+
+
 async def health(request: web.Request) -> web.Response:
     return web.Response(text="ok")
 
 
+KEEP_ALIVE_INTERVAL = int(os.getenv("KEEP_ALIVE_INTERVAL", "600"))  # 10 минут
+KEEP_ALIVE_ENABLED = os.getenv("KEEP_ALIVE_ENABLED", "1") != "0"
+
+
+async def _keep_alive_loop() -> None:
+    """Периодически пингует собственный health-эндпоинт, чтобы Render
+    не усыплял бесплатный веб-сервис из-за отсутствия входящих запросов."""
+    await asyncio.sleep(30)
+    async with aiohttp.ClientSession() as session:
+        while True:
+            try:
+                async with session.get(
+                    BASE_URL + "/", timeout=aiohttp.ClientTimeout(total=15)
+                ) as resp:
+                    log.info("Keep-alive ping: %s", resp.status)
+            except Exception as e:
+                log.warning("Keep-alive ping не удался: %s", e)
+            await asyncio.sleep(KEEP_ALIVE_INTERVAL)
+
+
 async def on_startup(app: web.Application) -> None:
     await db.init_db()
+
+    try:
+        await bot.delete_my_commands()
+    except Exception as e:
+        log.warning("Не удалось очистить список команд бота: %s", e)
+
     log.info("Установка Webhook на адрес: %s", WEBHOOK_URL)
     await bot.set_webhook(
         url=WEBHOOK_URL,
         drop_pending_updates=True,
     )
 
+    if KEEP_ALIVE_ENABLED:
+        app["keep_alive_task"] = asyncio.create_task(_keep_alive_loop())
+
 
 async def on_shutdown(app: web.Application) -> None:
+    task = app.get("keep_alive_task")
+    if task:
+        task.cancel()
     log.info("Завершение работы: закрываем сессию бота...")
     await bot.session.close()
 
@@ -296,6 +438,8 @@ def create_app() -> web.Application:
     app.router.add_get("/", health)
     app.router.add_post("/api/status", api_status)
     app.router.add_post("/api/create-invoice-link", api_create_invoice_link)
+    app.router.add_post("/api/redeem-code", api_redeem_code)
+    app.router.add_post("/api/create-order", api_create_order)
     app.router.add_get("/auth.js", lambda request: web.FileResponse(Path(__file__).parent / "auth.js"))
 
     web_dir = Path(__file__).parent / "WEB"

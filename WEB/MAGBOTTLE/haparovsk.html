@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>SWAG CLUB — Каталог</title>
+<title>SWAG CLUB — Хапаровск</title>
 
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
 <script src="../auth.js"></script>
@@ -84,11 +84,11 @@
     pointer-events: none;
   }
 
-  .profile-btn {
+  .back-btn {
     position: fixed;
     z-index: 5;
-    top: 35px;
-    right: 10px;
+    top: 52px;
+    left: 18px;
     width: 38px;
     height: 38px;
     border-radius: 50%;
@@ -101,18 +101,18 @@
     transition: transform 0.15s ease;
   }
 
-  .profile-btn:active {
+  .back-btn:active {
     transform: scale(0.92);
   }
 
-  .profile-btn svg {
-    width: 17px;
-    height: 17px;
+  .back-btn svg {
+    width: 16px;
+    height: 16px;
   }
 
-  .profile-btn path {
+  .back-btn path {
     stroke: var(--bg);
-    stroke-width: 1.8;
+    stroke-width: 2;
     fill: none;
     stroke-linecap: round;
     stroke-linejoin: round;
@@ -164,7 +164,7 @@
     display: flex;
     flex-direction: column;
     align-items: center;
-    padding: 32px 24px 16px;
+    padding: 32px 16px 16px;
     text-align: center;
     overflow-y: auto;
     opacity: 0;
@@ -197,26 +197,22 @@
   }
 
   .headline {
-    width: 100%;
-    max-width: 250px;
-    line-height: 0.86;
+    font-family: 'Oswald', sans-serif;
+    font-size: 32px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
     color: var(--text);
-    margin: 4px 0 6px;
+    margin-bottom: 16px;
     opacity: 0;
     animation: fadeUp 0.6s ease forwards 0.2s;
   }
 
-  .headline img {
-    width: 100%;
-    height: auto;
-    display: block;
-  }
-
   .divider {
     width: 100%;
-    max-width: 340px;
+    max-width: 380px;
     height: 1px;
-    margin: 6px auto 4px;
+    margin: 4px auto 16px;
     background: repeating-linear-gradient(90deg, var(--line) 0 6px, transparent 6px 12px);
     opacity: 0;
     animation: fadeUp 0.6s ease forwards 0.3s;
@@ -227,177 +223,154 @@
     to { opacity: 1; transform: translateY(0); }
   }
 
-  .cat-list {
+  .products-grid {
     width: 100%;
-    max-width: 340px;
-    margin-top: 4px;
+    max-width: 380px;
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
     opacity: 0;
     animation: fadeUp 0.6s ease forwards 0.4s;
   }
 
-  .cat-row {
+  .product-card {
     position: relative;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    padding: 18px 2px;
-    border-bottom: 1px dashed var(--line);
-    background: none;
-    border-left: none;
-    border-right: none;
-    border-top: none;
-    width: 100%;
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: 4px;
+    overflow: hidden;
     cursor: pointer;
     text-align: left;
-    overflow: hidden;
-    transition: transform 0.12s ease, opacity 0.12s ease;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    transition: transform 0.15s ease, border-color 0.15s ease;
   }
 
-  .cat-list .cat-row:first-child {
-    border-top: 1px dashed var(--line);
+  .product-card.locked .product-img-wrap img {
+    filter: blur(16px) saturate(0.85);
+    transform: scale(1.15);
   }
 
-  .cat-row:active {
-    transform: scale(0.98);
-    opacity: 0.8;
-  }
-
-  .cat-index {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 11px;
-    color: var(--text-faint);
-    font-weight: 600;
-    flex-shrink: 0;
-    width: 22px;
-  }
-
-  .cat-name {
-    font-family: 'Oswald', sans-serif;
-    font-weight: 700;
-    font-size: 25px;
-    letter-spacing: 0.8px;
-    line-height: 0.95;
-    text-transform: uppercase;
-    color: var(--text);
-  }
-
-  .cat-meta {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 9.5px;
-    letter-spacing: 0.5px;
-    color: var(--text-faint);
-    text-transform: uppercase;
-    margin-left: auto;
-    text-align: right;
-    max-width: 90px;
-    line-height: 1.2;
-    flex-shrink: 0;
-  }
-
-  .cat-meta.hot {
-    color: var(--accent);
-  }
-
-  .cat-arrow {
-    font-size: 16px;
-    color: var(--text-faint);
-    flex-shrink: 0;
-    transition: transform 0.15s ease;
-    margin-left: 4px;
-  }
-
-  .cat-row:active .cat-arrow {
-    transform: translateX(3px);
-    color: var(--accent);
-  }
-
-  .cat-row.locked .cat-name,
-  .cat-row.locked .cat-meta {
-    filter: blur(5px);
+  .product-card.locked .product-name,
+  .product-card.locked .product-price {
+    filter: blur(4px);
     user-select: none;
   }
 
-  .cat-row.locked .cat-arrow {
-    opacity: 0;
-  }
-
-  .lock-tape {
+  .lock-ribbon {
     display: none;
     position: absolute;
-    left: -6px;
-    right: -6px;
-    top: 50%;
-    height: 24px;
-    transform: translateY(-50%) rotate(-1.6deg);
-    background-image: url('img/leopard_tape.jpg');
+    left: -22%;
+    right: -22%;
+    top: 34%;
+    height: 30px;
+    transform: rotate(-9deg);
+    background-image: url('../img/leopard_tape.jpg');
     background-size: cover;
     background-position: center;
     align-items: center;
     justify-content: center;
-    overflow: hidden;
-    box-shadow: 0 2px 6px rgba(0,0,0,0.25);
+    box-shadow: 0 3px 10px rgba(0,0,0,0.3);
+    z-index: 2;
   }
 
-  .cat-row.locked .lock-tape {
+  .product-card.locked .lock-ribbon {
     display: flex;
   }
 
-  .lock-tape::before {
+  .lock-ribbon::before {
     content: '';
     position: absolute;
     inset: 0;
-    background: rgba(255,59,32,0.55);
+    background: rgba(255,59,32,0.6);
     mix-blend-mode: multiply;
   }
 
-  .lock-tape span {
+  .lock-ribbon span {
     position: relative;
     z-index: 1;
     font-family: 'JetBrains Mono', monospace;
-    font-size: 9px;
-    font-weight: 700;
+    font-size: 10px;
+    font-weight: 800;
     letter-spacing: 1.5px;
     color: #fff;
     text-transform: uppercase;
-    text-shadow: 0 1px 2px rgba(0,0,0,0.45);
+    text-shadow: 0 1px 2px rgba(0,0,0,0.5);
     white-space: nowrap;
   }
 
-  .decor-line-wrap {
+  .lock-cta {
+    display: none;
+    position: absolute;
+    bottom: 10px;
+    left: 8px;
+    right: 8px;
+    z-index: 3;
+    background: var(--text);
+    color: var(--bg);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 9.5px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    text-align: center;
+    padding: 8px 4px;
+    border-radius: 2px;
+  }
+
+  .product-card.locked .lock-cta {
+    display: block;
+  }
+
+  .product-card:active {
+    transform: scale(0.98);
+  }
+
+  .product-img-wrap {
     width: 100%;
-    max-width: 340px;
-    margin: 28px auto 16px;
+    aspect-ratio: 1/1;
+    background: var(--panel2);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .product-img-wrap img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+
+  .product-info {
+    padding: 10px 12px;
     display: flex;
-    justify-content: center;
-    align-items: center;
-    opacity: 0;
-    animation: fadeUp 0.6s ease forwards 0.5s;
+    flex-direction: column;
+    gap: 4px;
   }
 
-  .accent-curve {
-    width: 100%;
-    height: 80px;
-    overflow: visible;
+  .product-name {
+    font-family: 'Oswald', sans-serif;
+    font-weight: 700;
+    font-size: 14px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--text);
+    line-height: 1.1;
   }
 
-  .accent-curve path {
-    stroke: var(--accent);
-    stroke-width: 4.5;
-    stroke-linecap: round;
-    stroke-linejoin: round;
-    stroke-dasharray: 850;
-    stroke-dashoffset: 850;
-    animation: drawLine 2s cubic-bezier(0.4, 0, 0.2, 1) forwards 0.6s;
-  }
-
-  @keyframes drawLine {
-    to { stroke-dashoffset: 0; }
+  .product-price {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--accent);
+    white-space: nowrap;
   }
 
   .foot {
     position: relative;
     z-index: 1;
-    padding: 10px 20px calc(14px + env(safe-area-inset-bottom, 0px));
+    padding: 18px 20px calc(14px + env(safe-area-inset-bottom, 0px));
     text-align: center;
     font-family: 'JetBrains Mono', monospace;
     font-size: 10px;
@@ -416,36 +389,48 @@
 <div class="bg-grain"></div>
 <div class="bg-vignette"></div>
 
-<div class="spine">ВЫБЕРИ КАТЕГОРИЮ</div>
+<div class="spine">ХАПАРОВСК</div>
 
-<button class="profile-btn" id="profileBtn" aria-label="Профиль">
-  <svg viewBox="0 0 24 24"><path d="M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8Z"/><path d="M4 20c1.6-3.8 5-6 8-6s6.4 2.2 8 6"/></svg>
+<button class="back-btn" id="backBtn" aria-label="Назад">
+  <svg viewBox="0 0 24 24"><path d="M15 5 8 12l7 7"/></svg>
 </button>
 
 <div class="marquee">
   <div class="marquee-track" id="marqueeTrack">
-    <div class="marquee-item"><b>EARLY ACCESS</b> — ТОЛЬКО ДЛЯ СВОИХ —</div>
-    <div class="marquee-item"><b>EARLY ACCESS</b> — ТОЛЬКО ДЛЯ СВОИХ —</div>
-    <div class="marquee-item"><b>EARLY ACCESS</b> — ТОЛЬКО ДЛЯ СВОИХ —</div>
-    <div class="marquee-item"><b>EARLY ACCESS</b> — ТОЛЬКО ДЛЯ СВОИХ —</div>
+    <div class="marquee-item"><b>ХАПАРОВСК</b> — ДРОП 02 —</div>
+    <div class="marquee-item"><b>ХАПАРОВСК</b> — ДРОП 02 —</div>
   </div>
 </div>
 
 <div class="screen" id="screen">
-  <div class="eyebrow">[ <b>SWAG CLUB</b> × ROLDOZZZER ]</div>
-
-  <div class="headline">
-    <img src="img/CATALOG.png" alt="КАТАЛОГ">
-  </div>
-
+  <div class="eyebrow">[ <b>SWAG CLUB</b> × ДРОП 02 ]</div>
+  <div class="headline">Хапаровск</div>
   <div class="divider"></div>
 
-  <div class="cat-list" id="catList"></div>
+  <div class="products-grid" id="productsGrid">
+    <div class="product-card locked" data-id="kislota">
+      <div class="product-img-wrap">
+        <img src="img_hap/KISLOTA_1.png" alt="KISLOTA_1">
+      </div>
+      <div class="product-info">
+        <div class="product-name">КИСЛОТА</div>
+        <div class="product-price">8 500 ₽</div>
+      </div>
+      <div class="lock-ribbon"><span>ZERO ACCESS</span></div>
+      <div class="lock-cta">Получить доступ →</div>
+    </div>
 
-  <div class="decor-line-wrap">
-    <svg class="accent-curve" viewBox="0 0 340 140" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <path d="M 0 95 C 25 80, 60 10, 95 10 C 130 10, 135 130, 165 130 C 195 130, 200 5, 235 5 C 270 5, 280 125, 305 125 C 320 125, 330 65, 340 30" />
-    </svg>
+    <div class="product-card locked" data-id="tray">
+      <div class="product-img-wrap">
+        <img src="img_hap/TARELKA_1.png" alt="TARELKA_1">
+      </div>
+      <div class="product-info">
+        <div class="product-name">ТАРЕЛКА</div>
+        <div class="product-price">1 500 ₽</div>
+      </div>
+      <div class="lock-ribbon"><span>ZERO ACCESS</span></div>
+      <div class="lock-cta">Получить доступ →</div>
+    </div>
   </div>
 </div>
 
@@ -471,10 +456,7 @@
       tg.expand();
       if (tg.setHeaderColor) tg.setHeaderColor('#f5f4ef');
       if (tg.setBackgroundColor) tg.setBackgroundColor('#f5f4ef');
-      
-      if (tg.BackButton) {
-        tg.BackButton.hide();
-      }
+      if (tg.BackButton) tg.BackButton.hide();
     } catch(e) {
       console.warn('Telegram WebApp init:', e);
     }
@@ -504,41 +486,23 @@
     }, 250);
   }
 
-  var CATEGORIES = [
-    { slug: 'haparovsk', name: 'Хапаровск', meta: 'ДРОП 02', hot: false, customUrl: 'HAPAROVSK/haparovsk.html', requiredLevel: 1, lockLabel: 'ZERO ACCESS' },
-    { slug: 'norules', name: 'No Rules', meta: 'NEW', hot: false, customUrl: 'NO RULES/norules.html', requiredLevel: 1, lockLabel: 'ZERO ACCESS' },
-    { slug: 'magbottle', name: 'MagBottle', meta: 'NEW', hot: false, customUrl: 'MAGBOTTLE/magbottle.html', requiredLevel: 1, lockLabel: 'ZERO ACCESS' },
-    { slug: 'secret', name: '??? Секретный дроп', meta: 'INSIDER+', hot: false, customUrl: 'category_soon.html', requiredLevel: 3, lockLabel: 'INSIDER+' },
-    { slug: 'semeyniki', name: 'Ох**ые<br>семейники', meta: 'СКОРО', hot: false, customUrl: 'category_soon.html', requiredLevel: 1, lockLabel: 'ZERO ACCESS' },
-    { slug: 'accessories', name: 'Аксессуары', meta: 'ПАТЧИ И МЕЛОЧЬ', hot: false, customUrl: 'category_soon.html', requiredLevel: 1, lockLabel: 'ZERO ACCESS' },
-    { slug: 'other', name: 'Другое', meta: 'ДРОП 01', hot: false, customUrl: 'category_soon.html', requiredLevel: 1, lockLabel: 'ZERO ACCESS' }
-  ];
+  var backBtn = document.getElementById('backBtn');
+  if (backBtn) {
+    backBtn.addEventListener('click', function() {
+      navigateTo('../catalog.html' + currentQuery);
+    });
+  }
 
-  var listEl = document.getElementById('catList');
-  var userLevel = 0; 
+  var hasAccess = false;
+  var cards = document.querySelectorAll('.product-card');
 
-  CATEGORIES.forEach(function(cat, i) {
-    var row = document.createElement('button');
-    row.className = 'cat-row locked';
-    row.dataset.required = cat.requiredLevel;
-
-    var isAccent = cat.hot || cat.meta === 'NEW';
-
-    row.innerHTML =
-      '<span class="cat-index mono">' + String(i + 1).padStart(2, '0') + '</span>' +
-      '<span class="cat-name">' + cat.name + '</span>' +
-      '<span class="cat-meta mono' + (isAccent ? ' hot' : '') + '">' + cat.meta + '</span>' +
-      '<span class="cat-arrow">→</span>' +
-      '<div class="lock-tape"><span>' + cat.lockLabel + '</span></div>';
-
-    row.addEventListener('click', function() {
-      var required = parseInt(row.dataset.required, 10) || 0;
-
-      if (required > userLevel) {
+  cards.forEach(function(card) {
+    var productId = card.getAttribute('data-id');
+    card.addEventListener('click', function() {
+      if (!hasAccess) {
         try {
           if (tg && tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('warning');
         } catch(e) {}
-        
         var subscribeUrl = 'https://t.me/SwagClubEA_bot?start=subscribe';
         if (tg && tg.openTelegramLink) {
           tg.openTelegramLink(subscribeUrl);
@@ -550,37 +514,28 @@
       }
 
       var targetUrl;
-      if (cat.customUrl) {
-        targetUrl = cat.customUrl + currentQuery;
+      if (productId === 'kislota') {
+        targetUrl = 'kislota.html' + currentQuery;
+      } else if (productId === 'tray') {
+        targetUrl = 'tarelka.html' + currentQuery;
       } else {
-        targetUrl = 'category.html' + currentQuery + (currentQuery ? '&' : '?') + 'slug=' + encodeURIComponent(cat.slug);
+        targetUrl = 'tarelka.html' + currentQuery + (currentQuery ? '&' : '?') + 'id=' + productId;
       }
+
       navigateTo(targetUrl);
     });
-
-    listEl.appendChild(row);
   });
 
   function applyLocks(status) {
-    userLevel = (status && status.level) || 0;
-
-    var rows = listEl.querySelectorAll('.cat-row');
-    rows.forEach(function(row) {
-      var required = parseInt(row.dataset.required, 10) || 0;
-      row.classList.toggle('locked', required > userLevel);
+    hasAccess = status && status.has_access;
+    cards.forEach(function(card) {
+      card.classList.toggle('locked', !hasAccess);
     });
   }
 
   if (window.SwagAuth) {
     window.SwagAuth.fetchStatus().then(function(status) {
       applyLocks(status);
-    });
-  }
-
-  var profileBtn = document.getElementById('profileBtn');
-  if (profileBtn) {
-    profileBtn.addEventListener('click', function() {
-      navigateTo('profile.html' + currentQuery);
     });
   }
 })();

@@ -769,7 +769,13 @@
       if (tg && tg.HapticFeedback) {
         try { tg.HapticFeedback.impactOccurred('medium'); } catch(e) {}
       }
-      alert('Заказ оформлен! Комплектация: ' + selectedConfigName + ', Цвет: ' + currentColor + ', Размер: ' + selectedSize);
+      var orderData = {
+        product: 'Джерси No Rules — ' + selectedConfigName,
+        price: selectedPrice,
+        options: { 'Цвет': currentColor, 'Размер': selectedSize }
+      };
+      try { sessionStorage.setItem('swag_order', JSON.stringify(orderData)); } catch(e) {}
+      navigateTo('../order.html' + currentQuery);
     });
   }
 })();

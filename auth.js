@@ -56,11 +56,47 @@ window.SwagAuth = (function () {
     }
   }
 
+  async function redeemCode(code) {
+    var initData = getInitData();
+    if (!initData) {
+      return { ok: false, message: "Открой приложение через Telegram, чтобы ввести код" };
+    }
+    try {
+      var res = await fetch("/api/redeem-code", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ initData: initData, code: code }),
+      });
+      return await res.json();
+    } catch (e) {
+      return { ok: false, message: "Ошибка сети, попробуй ещё раз" };
+    }
+  }
+
+  async function createOrder(order) {
+    var initData = getInitData();
+    if (!initData) {
+      return { ok: false, message: "Открой приложение через Telegram, чтобы оформить заказ" };
+    }
+    try {
+      var res = await fetch("/api/create-order", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(Object.assign({ initData: initData }, order)),
+      });
+      return await res.json();
+    } catch (e) {
+      return { ok: false, message: "Ошибка сети, попробуй ещё раз" };
+    }
+  }
+
   return {
     tg: tg,
     getInitData: getInitData,
     fetchStatus: fetchStatus,
     createInvoiceLink: createInvoiceLink,
+    redeemCode: redeemCode,
+    createOrder: createOrder,
   };
 })();
 

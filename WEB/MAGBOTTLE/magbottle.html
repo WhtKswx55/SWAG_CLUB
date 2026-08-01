@@ -6,6 +6,7 @@
 <title>SWAG CLUB — MAGBOTTLE</title>
 
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
+<script src="../auth.js"></script>
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;600;700&display=swap" rel="stylesheet">
@@ -433,10 +434,32 @@
     });
   }
 
+  var hasAccess = false;
+  if (window.SwagAuth) {
+    window.SwagAuth.fetchStatus().then(function(status) {
+      hasAccess = !!(status && status.has_access);
+    });
+  }
+
   var bottleCard = document.getElementById('bottleCard');
   if (bottleCard) {
     bottleCard.addEventListener('click', function(e) {
       e.preventDefault();
+
+      if (!hasAccess) {
+        try {
+          if (tg && tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('warning');
+        } catch(e) {}
+        var subscribeUrl = 'https://t.me/SwagClubEA_bot?start=subscribe';
+        if (tg && tg.openTelegramLink) {
+          tg.openTelegramLink(subscribeUrl);
+          tg.close();
+        } else {
+          window.location.href = subscribeUrl;
+        }
+        return;
+      }
+
       navigateTo('mb.html' + currentQuery);
     });
   }

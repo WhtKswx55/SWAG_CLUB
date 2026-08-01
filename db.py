@@ -1,5 +1,8 @@
 import asyncio
+import random
+import secrets
 import sqlite3
+import string
 from contextlib import closing
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
@@ -65,6 +68,41 @@ def _init_sync() -> None:
                 months                INTEGER,
                 telegram_charge_id    TEXT,
                 paid_at               TEXT NOT NULL
+            )
+            """
+        )
+        conn.execute(
+            """
+            CREATE TABLE IF NOT EXISTS access_codes (
+                code          TEXT PRIMARY KEY,
+                months        INTEGER NOT NULL,
+                note          TEXT,
+                created_by    INTEGER,
+                created_at    TEXT NOT NULL,
+                used_by       INTEGER,
+                used_at       TEXT
+            )
+            """
+        )
+        conn.execute(
+            """
+            CREATE TABLE IF NOT EXISTS orders (
+                id              INTEGER PRIMARY KEY AUTOINCREMENT,
+                tg_id           INTEGER NOT NULL,
+                username        TEXT,
+                product         TEXT,
+                price           INTEGER,
+                options_json    TEXT,
+                telegram_handle TEXT,
+                first_name      TEXT,
+                last_name       TEXT,
+                country         TEXT,
+                city            TEXT,
+                address         TEXT,
+                has_pvz         TEXT,
+                phone           TEXT,
+                email           TEXT,
+                created_at      TEXT NOT NULL
             )
             """
         )
@@ -270,3 +308,114 @@ async def extend_subscription(
         username,
         first_name,
     )
+
+
+def _make_code() -> str:
+    alphabet = string.ascii_uppercase + string.digits
+    chunk = "".join(secrets.choice(alphabet) for _ in range(6))
+    return f"SWAG-{chunk}"
+
+
+def _generate_access_code_sync(
+    months: int, note: Optional[str], created_by: Optional[int]
+) -> str:
+    with closing(_connect()) as conn, conn:
+        for _ in range(10):
+            code = _make_code()
+            existing = conn.execute(
+                "SELECT code FROM access_codes WHERE code = ?", (code,)
+            ).fetchone()
+            if existing is None:
+                conn.execute(
+                    "INSERT INTO access_codes (code, months, note, created_by, created_at) "
+                    "VALUES (?, ?, ?, ?, ?)",
+                    (code, months, note, created_by, _iso(_now())),
+                )
+                return code
+        raise RuntimeError("Не удалось сгенерировать уникальный код")
+
+
+async def generate_access_code(
+    months: int, note: Optional[str] = None, created_by: Optional[int] = None
+) -> str:
+    return await asyncio.to_thread(
+        _generate_access_code_sync, months, note, created_by
+    )
+
+
+def _redeem_code_sync(
+    tg_id: int,
+    code: str,
+    username: Optional[str],
+    first_name: Optional[str],
+) -> dict:
+    code = (code or "").strip().upper()
+    with closing(_connect()) as conn, conn:
+        row = conn.execute(
+            "SELECT * FROM access_codes WHERE code = ?", (code,)
+        ).fetchone()
+
+        if row is None:
+            return {"ok": False, "message": "Такой код не найден"}
+        if row["used_by"] is not None:
+            return {"ok": False, "message": "Этот код уже использован"}
+
+        conn.execute(
+            "UPDATE access_codes SET used_by = ?, used_at = ? WHERE code = ?",
+            (tg_id, _iso(_now()), code),
+        )
+        months = row["months"]
+
+    status = _extend_subscription_sync(
+        tg_id,
+        months,
+        0,
+        "CODE",
+        f"code_{code}",
+        username,
+        first_name,
+    )
+    status["ok"] = True
+    status["code"] = code
+    return status
+
+
+async def redeem_code(
+    tg_id: int,
+    code: str,
+    username: Optional[str] = None,
+    first_name: Optional[str] = None,
+) -> dict:
+    return await asyncio.to_thread(_redeem_code_sync, tg_id, code, username, first_name)
+
+
+def _create_order_sync(order: dict) -> int:
+    with closing(_connect()) as conn, conn:
+        cur = conn.execute(
+            "INSERT INTO orders (tg_id, username, product, price, options_json, "
+            "telegram_handle, first_name, last_name, country, city, address, "
+            "has_pvz, phone, email, created_at) "
+            "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+            (
+                order.get("tg_id"),
+                order.get("username"),
+                order.get("product"),
+                order.get("price"),
+                order.get("options_json"),
+                order.get("telegram_handle"),
+                order.get("first_name"),
+                order.get("last_name"),
+                order.get("country"),
+                order.get("city"),
+                order.get("address"),
+                order.get("has_pvz"),
+                order.get("phone"),
+                order.get("email"),
+                _iso(_now()),
+            ),
+        )
+        return cur.lastrowid
+
+
+async def create_order(order: dict) -> int:
+    return await asyncio.to_thread(_create_order_sync, order)

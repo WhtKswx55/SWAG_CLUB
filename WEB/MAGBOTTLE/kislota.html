@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>SWAG CLUB — MAGBOTTLE</title>
+<title>SWAG CLUB — КИСЛОТА</title>
 
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
 
@@ -327,55 +327,52 @@
     transform: scale(1.2);
   }
 
-  .options-section {
+  .sizes-section {
     width: 100%;
     max-width: 380px;
     margin-bottom: 20px;
     text-align: left;
     opacity: 0;
-    animation: fadeUp 0.6s ease forwards 0.42s;
+    animation: fadeUp 0.6s ease forwards 0.45s;
   }
 
-  .options-grid {
+  .section-title {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 1px;
+    color: var(--text-dim);
+    margin-bottom: 8px;
+    text-transform: uppercase;
+  }
+
+  .sizes-grid {
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
+    grid-template-columns: repeat(5, 1fr);
     gap: 6px;
   }
 
-  .option-btn {
+  .size-btn {
     background: var(--panel);
     border: 1px solid var(--line);
     border-radius: 4px;
-    padding: 10px 6px;
-    font-family: 'Oswald', sans-serif;
+    padding: 10px 0;
+    font-family: 'JetBrains Mono', monospace;
     font-size: 12px;
     font-weight: 600;
-    text-transform: uppercase;
     color: var(--text);
     cursor: pointer;
     text-align: center;
     transition: all 0.15s ease;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 6px;
   }
 
-  .option-swatch {
-    width: 16px;
-    height: 16px;
-    border-radius: 50%;
-    border: 1px solid var(--line);
-    flex-shrink: 0;
-  }
-
-  .option-btn.selected {
+  .size-btn.selected {
     background: var(--text);
     color: var(--bg);
     border-color: var(--text);
   }
 
-  .option-btn:active {
+  .size-btn:active {
     transform: scale(0.95);
   }
 
@@ -387,7 +384,7 @@
     border-radius: 6px;
     padding: 16px;
     text-align: left;
-    margin-bottom: 24px;
+    margin-bottom: 20px;
     opacity: 0;
     animation: fadeUp 0.6s ease forwards 0.5s;
   }
@@ -406,21 +403,36 @@
     font-size: 13px;
     line-height: 1.5;
     color: var(--text-dim);
-    white-space: pre-line;
+    margin-bottom: 12px;
   }
 
-  .info-text b {
-    color: var(--text);
-  }
-
-  .section-title {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 11px;
-    font-weight: 600;
-    letter-spacing: 1px;
+  .info-list {
+    list-style: none;
+    font-size: 12px;
     color: var(--text-dim);
-    margin-bottom: 8px;
-    text-transform: uppercase;
+    line-height: 1.6;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    font-family: 'JetBrains Mono', monospace;
+  }
+
+  .size-chart-wrap {
+    width: 100%;
+    max-width: 380px;
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    overflow: hidden;
+    margin-bottom: 24px;
+    opacity: 0;
+    animation: fadeUp 0.6s ease forwards 0.55s;
+  }
+
+  .size-chart-wrap img {
+    width: 100%;
+    height: auto;
+    display: block;
   }
 
   .order-btn {
@@ -470,9 +482,9 @@
 <div class="bg-grain"></div>
 <div class="bg-vignette"></div>
 
-<!-- <div class="tag tl">N.03<br><b>ТОВАР</b></div>
-<div class="tag tr"><b>SWAG</b> / MB<br>29.07</div> -->
-<div class="spine">MAGBOTTLE</div>
+<!-- <div class="tag tl">N.04<br><b>ТОВАР</b></div>
+<div class="tag tr"><b>SWAG</b> / KIS<br>27.07</div> -->
+<div class="spine">КИСЛОТА</div>
 
 <button class="back-btn" id="backBtn" aria-label="Назад">
   <svg viewBox="0 0 24 24"><path d="M15 5 8 12l7 7"/></svg>
@@ -480,24 +492,24 @@
 
 <div class="marquee">
   <div class="marquee-track" id="marqueeTrack">
-    <div class="marquee-item"><b>MAGBOTTLE</b> — НОВИНКА —</div>
-    <div class="marquee-item"><b>MAGBOTTLE</b> — НОВИНКА —</div>
+    <div class="marquee-item"><b>КИСЛОТА</b> — ДРОП 02 —</div>
+    <div class="marquee-item"><b>КИСЛОТА</b> — ДРОП 02 —</div>
   </div>
 </div>
 
 <div class="screen" id="screen">
-  <div class="eyebrow">[ <b>SWAG CLUB</b> × NEW ]</div>
-  <div class="headline" id="productTitle">MagBottle</div>
-  <div class="price-tag" id="productPrice">3 000 ₽</div>
+  <div class="eyebrow">[ <b>SWAG CLUB</b> × ДРОП 02 ]</div>
+  <div class="headline">Кислота</div>
+  <div class="price-tag">8 500 ₽</div>
   <div class="divider"></div>
 
   <div class="slider-container">
     <div class="slider" id="slider">
       <div class="slides" id="slidesTrack">
-        <div class="slide"><img src="mb_1.png" alt="Фото 1"></div>
-        <div class="slide"><img src="mb_2.png" alt="Фото 2"></div>
-        <div class="slide"><img src="mb_3.png" alt="Фото 3"></div>
-        <div class="slide"><img src="mb_4.png" alt="Фото 4"></div>
+        <div class="slide"><img src="img_hap/KISLOTA_1.png" alt="Кислота вид 1"></div>
+        <div class="slide"><img src="img_hap/KISLOTA_2.png" alt="Кислота вид 2"></div>
+        <div class="slide"><img src="img_hap/KISLOTA_3.png" alt="Кислота вид 3"></div>
+        <div class="slide"><img src="img_hap/KISLOTA_siz.png" alt="Кислота вид 4"></div>
       </div>
     </div>
     <div class="slider-dots" id="sliderDots">
@@ -508,25 +520,40 @@
     </div>
   </div>
 
-  <div class="options-section">
-    <div class="section-title">Выберите цвет</div>
-    <div class="options-grid" id="colorGrid">
-      <button class="option-btn selected" data-color="BLACK"><span class="option-swatch" style="background:#1a1917;"></span>Черный</button>
-      <button class="option-btn" data-color="BLUE"><span class="option-swatch" style="background:#aee0dd;"></span>Голубой</button>
-      <button class="option-btn" data-color="WHITE"><span class="option-swatch" style="background:#f2efe6;"></span>Белый</button>
+  <div class="sizes-section">
+    <div class="section-title">Выбрать размер</div>
+    <div class="sizes-grid" id="sizesGrid">
+      <button class="size-btn" data-size="S">S</button>
+      <button class="size-btn selected" data-size="M">M</button>
+      <button class="size-btn" data-size="L">L</button>
+      <button class="size-btn" data-size="XL">XL</button>
+      <button class="size-btn" data-size="XXL">XXL</button>
     </div>
   </div>
 
   <div class="info-card">
     <div class="info-title">Описание</div>
-    <div class="info-text">Бутылка 750 мл из нержавеющей стали с креплением MagSafe для смартфона.
-
-Позволяет удобно фиксировать телефон и использовать бутылку как штатив для съёмки тренировок и другого контента.
-
-Подходит для iPhone и Android. В комплекте идёт магнитное кольцо, которое можно приклеить на чехол или смартфон без поддержки MagSafe.</div>
+    <div class="info-text">
+      Футболка<br>
+      Плотность: 275 г/м²<br>
+      Состав: 100% хлопок<br><br>
+      Возможны незначительные вариации оттенка и потертостей
+    </div>
+    <div class="section-title" style="margin-top: 14px;">Уход</div>
+    <ul class="info-list">
+      <li>— Машинная стирка при температуре до 30°C</li>
+      <li>— Не отбеливать</li>
+      <li>— Гладить с изнанки, избегая области принта</li>
+      <li>— Не сушить в машине</li>
+    </ul>
   </div>
 
-  <button class="order-btn" id="orderBtn">Оформить заказ</button>
+  <div class="size-chart-wrap">
+    <img src="img_hap/KISLOTA_siz.png" alt="Размерная сетка">
+  </div>
+
+
+  <button class="order-btn" id="orderBtn">Заказать</button>
 </div>
 
 <div class="foot"><b>SWAGCLUB.RU</b> · ROLDOZZZER</div>
@@ -552,7 +579,9 @@
       if (tg.setHeaderColor) tg.setHeaderColor('#f5f4ef');
       if (tg.setBackgroundColor) tg.setBackgroundColor('#f5f4ef');
       if (tg.BackButton) tg.BackButton.hide();
-    } catch(e) {}
+    } catch(e) {
+      console.warn('Telegram WebApp init:', e);
+    }
   }
 
   var urlParams = new URLSearchParams(window.location.search);
@@ -567,7 +596,9 @@
 
   function navigateTo(url) {
     if (tg && tg.HapticFeedback) {
-      try { tg.HapticFeedback.impactOccurred('light'); } catch(e) {}
+      try {
+        tg.HapticFeedback.impactOccurred('light');
+      } catch(e) {}
     }
     if (screen) {
       screen.classList.remove('in');
@@ -580,20 +611,19 @@
   var backBtn = document.getElementById('backBtn');
   if (backBtn) {
     backBtn.addEventListener('click', function() {
-      navigateTo('magbottle.html' + currentQuery);
+      navigateTo('haparovsk.html' + currentQuery);
     });
   }
 
   var slidesTrack = document.getElementById('slidesTrack');
-  var sliderDots = document.getElementById('sliderDots');
-
-  var dots = sliderDots.querySelectorAll('.dot');
+  var dots = document.querySelectorAll('.dot');
+  
   if (slidesTrack && dots.length > 0) {
     slidesTrack.addEventListener('scroll', function() {
       var slideWidth = slidesTrack.clientWidth;
       var scrollLeft = slidesTrack.scrollLeft;
       var activeIndex = Math.round(scrollLeft / slideWidth);
-
+      
       dots.forEach(function(dot, i) {
         if (i === activeIndex) {
           dot.classList.add('active');
@@ -615,17 +645,17 @@
     });
   }
 
-  var colorBtns = document.querySelectorAll('#colorGrid .option-btn');
-  var selectedColorLabel = 'Черный';
-
-  colorBtns.forEach(function(btn) {
+  var sizeButtons = document.querySelectorAll('.size-btn');
+  var selectedSize = 'M';
+  
+  sizeButtons.forEach(function(btn) {
     btn.addEventListener('click', function() {
+      sizeButtons.forEach(function(b) { b.classList.remove('selected'); });
+      btn.classList.add('selected');
+      selectedSize = btn.getAttribute('data-size');
       if (tg && tg.HapticFeedback) {
         try { tg.HapticFeedback.selectionChanged(); } catch(e) {}
       }
-      colorBtns.forEach(function(b) { b.classList.remove('selected'); });
-      btn.classList.add('selected');
-      selectedColorLabel = btn.textContent.trim();
     });
   });
 
@@ -636,9 +666,9 @@
         try { tg.HapticFeedback.impactOccurred('medium'); } catch(e) {}
       }
       var orderData = {
-        product: 'MagBottle',
-        price: 3000,
-        options: { 'Цвет': selectedColorLabel }
+        product: 'Кислота',
+        price: 8500,
+        options: { 'Размер': selectedSize }
       };
       try { sessionStorage.setItem('swag_order', JSON.stringify(orderData)); } catch(e) {}
       navigateTo('../order.html' + currentQuery);

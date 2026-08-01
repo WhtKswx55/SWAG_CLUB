@@ -1,0 +1,444 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SWAG CLUB — Оформление заказа</title>
+
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<script src="../auth.js"></script>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;600;700&display=swap" rel="stylesheet">
+
+<style>
+  :root {
+    --bg: #f5f4ef;
+    --panel: #eae8df;
+    --panel2: #e0ded3;
+    --line: #d1cdbe;
+    --text: #1a1917;
+    --text-dim: #666155;
+    --text-faint: #8a8374;
+    --accent: #ff3b20;
+    --accent-dim: #ffdedb;
+    --vh: 1vh;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+  html, body {
+    height: 100%;
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Inter', sans-serif;
+  }
+
+  body {
+    min-height: calc(var(--vh, 1vh) * 100);
+    display: flex;
+    flex-direction: column;
+    position: relative;
+  }
+
+  .mono { font-family: 'JetBrains Mono', monospace; }
+
+  .bg-grain {
+    position: fixed; inset: 0; z-index: 0; pointer-events: none; opacity: 0.06; mix-blend-mode: multiply;
+    background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="140" height="140"><filter id="n"><feTurbulence type="fractalNoise" baseFrequency="0.85" numOctaves="2" stitchTiles="stitch"/></filter><rect width="100%25" height="100%25" filter="url(%23n)"/></svg>');
+  }
+  .bg-vignette { position: fixed; inset: 0; z-index: 0; pointer-events: none; box-shadow: inset 0 0 160px 50px rgba(0,0,0,0.05); }
+
+  .spine {
+    position: fixed; z-index: 3; left: 8px; top: 50%;
+    transform: translateY(-50%) rotate(-90deg) translateX(50%);
+    transform-origin: left center;
+    font-size: 10px; letter-spacing: 3px; color: var(--text-faint); font-weight: 700;
+    white-space: nowrap; pointer-events: none;
+  }
+
+  .back-btn {
+    position: fixed; z-index: 5; top: 30px; left: 18px;
+    width: 38px; height: 38px; border-radius: 50%;
+    background: var(--text); border: 1px solid var(--text);
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer; transition: transform 0.15s ease;
+  }
+  .back-btn:active { transform: scale(0.92); }
+  .back-btn svg { width: 16px; height: 16px; }
+  .back-btn path { stroke: var(--bg); stroke-width: 2; fill: none; stroke-linecap: round; stroke-linejoin: round; }
+
+  .marquee {
+    position: relative; z-index: 2; width: 100%; overflow: hidden;
+    background: #1a1917; border-bottom: 1px solid var(--line); padding: 6px 0; flex-shrink: 0;
+  }
+  .marquee-track { display: flex; width: max-content; animation: scrollLeft 18s linear infinite; }
+  .marquee-item {
+    display: flex; align-items: center; gap: 9px;
+    font-family: 'JetBrains Mono', monospace; font-size: 10px; font-weight: 600; letter-spacing: 1.5px;
+    color: #8f887a; padding: 0 20px; white-space: nowrap;
+  }
+  .marquee-item b { color: var(--accent); }
+  @keyframes scrollLeft { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+
+  .screen {
+    position: relative; z-index: 1; flex: 1;
+    display: flex; flex-direction: column; align-items: center;
+    padding: 32px 20px 40px; overflow-y: auto;
+    opacity: 0; transform: translateY(14px); transition: opacity 0.6s ease, transform 0.6s ease;
+  }
+  .screen.in { opacity: 1; transform: translateY(0); }
+  .screen::-webkit-scrollbar { display: none; }
+
+  .eyebrow {
+    font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: 2px; font-weight: 600;
+    color: var(--text-faint); margin-bottom: 10px; text-align: center;
+  }
+  .eyebrow b { color: var(--accent); }
+
+  .headline {
+    font-family: 'Oswald', sans-serif; font-size: 26px; font-weight: 700; text-transform: uppercase;
+    letter-spacing: 0.5px; color: var(--text); margin-bottom: 18px; text-align: center;
+  }
+
+  .summary-card {
+    width: 100%; max-width: 400px; background: var(--panel); border: 1px solid var(--line);
+    border-radius: 8px; padding: 14px 16px; margin-bottom: 22px;
+    display: flex; align-items: center; justify-content: space-between; gap: 10px;
+  }
+  .summary-name { font-family: 'Oswald', sans-serif; font-weight: 700; font-size: 15px; text-transform: uppercase; }
+  .summary-opts { font-size: 11px; color: var(--text-dim); margin-top: 4px; }
+  .summary-price { font-family: 'JetBrains Mono', monospace; font-weight: 700; color: var(--accent); font-size: 16px; white-space: nowrap; }
+
+  form { width: 100%; max-width: 400px; }
+
+  .field { margin-bottom: 20px; text-align: left; }
+  .field label {
+    display: block; font-size: 13px; color: var(--text-dim); margin-bottom: 8px;
+  }
+  .field label .req { color: var(--accent); margin-left: 2px; }
+
+  .field input[type="text"],
+  .field input[type="email"],
+  .field input[type="tel"],
+  .field select {
+    width: 100%; background: transparent; border: none; border-bottom: 1px solid var(--line);
+    color: var(--text); font-size: 15px; font-family: 'Inter', sans-serif;
+    padding: 8px 2px; outline: none; transition: border-color 0.15s ease;
+  }
+  .field select { appearance: none; -webkit-appearance: none; cursor: pointer; }
+  .field input::placeholder { color: var(--text-faint); }
+  .field input:focus, .field select:focus { border-color: var(--accent); }
+
+  .select-wrap { position: relative; }
+  .select-wrap::after {
+    content: '⌄'; position: absolute; right: 4px; top: 6px; color: var(--text-faint); pointer-events: none; font-size: 16px;
+  }
+  .select-wrap select option { background: var(--panel); color: var(--text); }
+
+  .radio-group { display: flex; flex-direction: column; gap: 10px; margin-top: 4px; }
+  .radio-option { display: flex; align-items: center; gap: 10px; cursor: pointer; }
+  .radio-option input { width: 17px; height: 17px; accent-color: var(--accent); }
+  .radio-option span { font-size: 14px; color: var(--text); }
+
+  .phone-row { display: flex; gap: 10px; }
+  .phone-row .select-wrap { flex: 0 0 92px; }
+  .phone-row input { flex: 1; }
+
+  .checkbox-field { display: flex; align-items: flex-start; gap: 10px; margin-top: 4px; margin-bottom: 26px; }
+  .checkbox-field input { width: 18px; height: 18px; margin-top: 2px; accent-color: var(--accent); flex-shrink: 0; }
+  .checkbox-field label { font-size: 12px; line-height: 1.5; color: var(--text-dim); text-align: left; }
+  .checkbox-field .req { color: var(--accent); }
+
+  .submit-btn {
+    width: 100%; background: var(--accent); color: #fff; border: none; border-radius: 6px;
+    padding: 16px; font-family: 'Oswald', sans-serif; font-size: 16px; font-weight: 700;
+    text-transform: uppercase; letter-spacing: 1px; cursor: pointer;
+    box-shadow: 0 4px 16px rgba(255, 59, 32, 0.25);
+    transition: transform 0.15s ease, opacity 0.15s ease;
+  }
+  .submit-btn:active { transform: scale(0.98); }
+  .submit-btn:disabled { opacity: 0.5; }
+
+  .form-msg {
+    margin-top: 14px; font-size: 12px; text-align: center; min-height: 16px; font-family: 'JetBrains Mono', monospace;
+  }
+  .form-msg.error { color: var(--accent); }
+
+  .foot {
+    position: relative; z-index: 1; padding: 10px 20px calc(14px + env(safe-area-inset-bottom, 0px));
+    text-align: center; font-family: 'JetBrains Mono', monospace; font-size: 10px;
+    color: var(--text-faint); letter-spacing: 1.5px; flex-shrink: 0;
+  }
+  .foot b { color: var(--text-dim); }
+
+  .success-overlay {
+    position: fixed; inset: 0; z-index: 10; background: var(--bg);
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    text-align: center; padding: 0 30px; opacity: 0; pointer-events: none; transition: opacity 0.4s ease;
+  }
+  .success-overlay.show { opacity: 1; pointer-events: auto; }
+  .success-mark {
+    width: 60px; height: 60px; border: 1px solid var(--accent); border-radius: 50%;
+    display: flex; align-items: center; justify-content: center; font-size: 26px; color: var(--accent);
+    margin-bottom: 18px;
+  }
+  .success-title { font-family: 'Oswald', sans-serif; font-size: 20px; font-weight: 700; text-transform: uppercase; margin-bottom: 8px; }
+  .success-sub { font-size: 13px; color: var(--text-dim); max-width: 260px; }
+</style>
+</head>
+<body>
+
+<div class="bg-grain"></div>
+<div class="bg-vignette"></div>
+
+<div class="spine">ОФОРМЛЕНИЕ ЗАКАЗА</div>
+
+<button class="back-btn" id="backBtn" aria-label="Назад">
+  <svg viewBox="0 0 24 24"><path d="M15 5 8 12l7 7"/></svg>
+</button>
+
+<div class="marquee">
+  <div class="marquee-track" id="marqueeTrack">
+    <div class="marquee-item"><b>SWAG CLUB</b> — ОФОРМЛЕНИЕ ЗАКАЗА —</div>
+    <div class="marquee-item"><b>SWAG CLUB</b> — ОФОРМЛЕНИЕ ЗАКАЗА —</div>
+  </div>
+</div>
+
+<div class="screen" id="screen">
+  <div class="eyebrow">[ <b>SWAG CLUB</b> × ROLDOZZZER ]</div>
+  <div class="headline">Данные для доставки</div>
+
+  <div class="summary-card" id="summaryCard">
+    <div>
+      <div class="summary-name" id="summaryName">Товар</div>
+      <div class="summary-opts" id="summaryOpts"></div>
+    </div>
+    <div class="summary-price" id="summaryPrice">0 ₽</div>
+  </div>
+
+  <form id="orderForm">
+    <div class="field">
+      <label>Telegram <span class="req">*</span></label>
+      <input type="text" id="telegramHandle" placeholder="Имя пользователя с символом @" required>
+    </div>
+
+    <div class="field">
+      <label>Имя <span class="req">*</span></label>
+      <input type="text" id="firstName" required>
+    </div>
+
+    <div class="field">
+      <label>Фамилия <span class="req">*</span></label>
+      <input type="text" id="lastName" required>
+    </div>
+
+    <div class="field select-wrap">
+      <label>Страна <span class="req">*</span></label>
+      <select id="country" required>
+        <option value="" disabled selected></option>
+        <option value="Россия">Россия</option>
+        <option value="Беларусь">Беларусь</option>
+        <option value="Казахстан">Казахстан</option>
+        <option value="Украина">Украина</option>
+        <option value="Финляндия">Финляндия</option>
+        <option value="Германия">Германия</option>
+        <option value="США">США</option>
+        <option value="Другое">Другое</option>
+      </select>
+    </div>
+
+    <div class="field">
+      <label>Город <span class="req">*</span></label>
+      <input type="text" id="city" required>
+    </div>
+
+    <div class="field">
+      <label>Адрес <span class="req">*</span></label>
+      <input type="text" id="address" required>
+    </div>
+
+    <div class="field">
+      <label>В вашем городе есть ПВЗ Яндекс? <span class="req">*</span></label>
+      <div class="radio-group">
+        <label class="radio-option"><input type="radio" name="hasPvz" value="Да" required><span>Да</span></label>
+        <label class="radio-option"><input type="radio" name="hasPvz" value="Только СДЭК"><span>Только СДЭК</span></label>
+      </div>
+    </div>
+
+    <div class="field">
+      <label>Телефон <span class="req">*</span></label>
+      <div class="phone-row">
+        <div class="select-wrap">
+          <select id="phoneCode">
+            <option value="+7">+7</option>
+            <option value="+375">+375</option>
+            <option value="+380">+380</option>
+            <option value="+358">+358</option>
+            <option value="+49">+49</option>
+            <option value="+1">+1</option>
+          </select>
+        </div>
+        <input type="tel" id="phoneNumber" placeholder="41 2345678" required>
+      </div>
+    </div>
+
+    <div class="field">
+      <label>Email <span class="req">*</span></label>
+      <input type="email" id="email" required>
+    </div>
+
+    <div class="checkbox-field">
+      <input type="checkbox" id="agree" required>
+      <label for="agree">Я подтверждаю, что ознакомлен(а) и согласен(на) с условиями публичной оферты, политикой конфиденциальности и даю согласие на обработку моих персональных данных <span class="req">*</span></label>
+    </div>
+
+    <button type="submit" class="submit-btn" id="submitBtn">Отправить заказ</button>
+    <div class="form-msg" id="formMsg"></div>
+  </form>
+</div>
+
+<div class="foot"><b>SWAGCLUB.RU</b> · ROLDOZZZER</div>
+
+<div class="success-overlay" id="successOverlay">
+  <div class="success-mark">✓</div>
+  <div class="success-title">Заказ принят</div>
+  <div class="success-sub">Мы свяжемся с тобой в Telegram для подтверждения деталей</div>
+</div>
+
+<script>
+(function() {
+  function setVh() { document.documentElement.style.setProperty('--vh', (window.innerHeight * 0.01) + 'px'); }
+  setVh();
+  window.addEventListener('resize', setVh);
+
+  var track = document.getElementById('marqueeTrack');
+  if (track) track.innerHTML += track.innerHTML;
+
+  var tg = window.Telegram && window.Telegram.WebApp ? window.Telegram.WebApp : null;
+  if (tg) {
+    try {
+      tg.ready();
+      tg.expand();
+      if (tg.setHeaderColor) tg.setHeaderColor('#f5f4ef');
+      if (tg.setBackgroundColor) tg.setBackgroundColor('#f5f4ef');
+      if (tg.BackButton) tg.BackButton.hide();
+    } catch(e) {}
+  }
+
+  var urlParams = new URLSearchParams(window.location.search);
+  var currentQuery = urlParams.toString() ? ('?' + urlParams.toString()) : '';
+
+  var screen = document.getElementById('screen');
+  if (screen) setTimeout(function() { screen.classList.add('in'); }, 100);
+
+  function navigateTo(url) {
+    if (tg && tg.HapticFeedback) { try { tg.HapticFeedback.impactOccurred('light'); } catch(e) {} }
+    if (screen) screen.classList.remove('in');
+    setTimeout(function() { window.location.href = url; }, 250);
+  }
+
+  var backBtn = document.getElementById('backBtn');
+  if (backBtn) {
+    backBtn.addEventListener('click', function() {
+      if (window.history.length > 1) {
+        if (tg && tg.HapticFeedback) { try { tg.HapticFeedback.impactOccurred('light'); } catch(e) {} }
+        window.history.back();
+      } else {
+        navigateTo('catalog.html' + currentQuery);
+      }
+    });
+  }
+
+  var orderData = null;
+  try {
+    var raw = sessionStorage.getItem('swag_order');
+    if (raw) orderData = JSON.parse(raw);
+  } catch(e) {}
+
+  if (!orderData) {
+    orderData = { product: 'Товар SWAG CLUB', price: 0, options: {} };
+  }
+
+  document.getElementById('summaryName').textContent = orderData.product || 'Товар';
+  document.getElementById('summaryPrice').textContent = (orderData.price || 0).toLocaleString('ru-RU') + ' ₽';
+
+  var optsEl = document.getElementById('summaryOpts');
+  var optsText = Object.keys(orderData.options || {}).map(function(k) {
+    return k + ': ' + orderData.options[k];
+  }).join(' · ');
+  optsEl.textContent = optsText;
+
+  if (tg && tg.initDataUnsafe && tg.initDataUnsafe.user && tg.initDataUnsafe.user.username) {
+    document.getElementById('telegramHandle').value = '@' + tg.initDataUnsafe.user.username;
+  }
+  if (tg && tg.initDataUnsafe && tg.initDataUnsafe.user) {
+    var u = tg.initDataUnsafe.user;
+    if (u.first_name) document.getElementById('firstName').value = u.first_name;
+    if (u.last_name) document.getElementById('lastName').value = u.last_name;
+  }
+
+  var form = document.getElementById('orderForm');
+  var submitBtn = document.getElementById('submitBtn');
+  var formMsg = document.getElementById('formMsg');
+  var overlay = document.getElementById('successOverlay');
+
+  if (form) {
+    form.addEventListener('submit', async function(e) {
+      e.preventDefault();
+
+      var hasPvzEl = form.querySelector('input[name="hasPvz"]:checked');
+      if (!hasPvzEl) {
+        formMsg.textContent = 'Укажите, есть ли в вашем городе ПВЗ Яндекс';
+        formMsg.className = 'form-msg error';
+        return;
+      }
+      if (!document.getElementById('agree').checked) {
+        formMsg.textContent = 'Нужно подтвердить согласие с условиями';
+        formMsg.className = 'form-msg error';
+        return;
+      }
+
+      submitBtn.disabled = true;
+      formMsg.textContent = 'Отправляем заказ…';
+      formMsg.className = 'form-msg';
+
+      var payload = {
+        product: orderData.product,
+        price: orderData.price,
+        options: orderData.options || {},
+        telegram_handle: document.getElementById('telegramHandle').value.trim(),
+        first_name: document.getElementById('firstName').value.trim(),
+        last_name: document.getElementById('lastName').value.trim(),
+        country: document.getElementById('country').value,
+        city: document.getElementById('city').value.trim(),
+        address: document.getElementById('address').value.trim(),
+        has_pvz: hasPvzEl.value,
+        phone: document.getElementById('phoneCode').value + ' ' + document.getElementById('phoneNumber').value.trim(),
+        email: document.getElementById('email').value.trim(),
+        agree: true,
+      };
+
+      var result = window.SwagAuth ? await window.SwagAuth.createOrder(payload) : { ok: false, message: 'Открой приложение через Telegram' };
+
+      submitBtn.disabled = false;
+
+      if (result && result.ok) {
+        try { sessionStorage.removeItem('swag_order'); } catch(e) {}
+        try { if (tg && tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('success'); } catch(e) {}
+        if (overlay) overlay.classList.add('show');
+        setTimeout(function() {
+          window.location.href = 'catalog.html' + currentQuery;
+        }, 1800);
+      } else {
+        formMsg.textContent = (result && result.message) ? result.message : 'Не получилось отправить заказ, попробуй ещё раз';
+        formMsg.className = 'form-msg error';
+        try { if (tg && tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('error'); } catch(e) {}
+      }
+    });
+  }
+})();
+</script>
+
+</body>
+</html>
