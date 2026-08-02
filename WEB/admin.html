@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SWAG CLUB — Admin</title>
+
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<script src="../auth.js"></script>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;600;700&display=swap" rel="stylesheet">
+
+<style>
+  :root {
+    --bg: #f5f4ef;
+    --panel: #eae8df;
+    --panel2: #e0ded3;
+    --line: #d1cdbe;
+    --text: #1a1917;
+    --text-dim: #666155;
+    --text-faint: #8a8374;
+    --accent: #ff3b20;
+    --ok: #2e8b46;
+    --vh: 1vh;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+  html, body { height: 100%; background: var(--bg); color: var(--text); font-family: 'Inter', sans-serif; }
+  body { min-height: calc(var(--vh, 1vh) * 100); display: flex; flex-direction: column; }
+  .mono { font-family: 'JetBrains Mono', monospace; }
+
+  .marquee {
+    width: 100%; overflow: hidden; background: #1a1917; border-bottom: 1px solid var(--line);
+    padding: 6px 0; flex-shrink: 0;
+  }
+  .marquee-track { display: flex; width: max-content; animation: scrollLeft 18s linear infinite; }
+  .marquee-item {
+    display: flex; align-items: center; gap: 9px; font-family: 'JetBrains Mono', monospace;
+    font-size: 10px; font-weight: 600; letter-spacing: 1.5px; color: #8f887a; padding: 0 20px; white-space: nowrap;
+  }
+  .marquee-item b { color: var(--accent); }
+  @keyframes scrollLeft { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+
+  header { padding: 18px 18px 8px; text-align: center; }
+  .eyebrow { font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: 2px; color: var(--text-faint); margin-bottom: 6px; }
+  .eyebrow b { color: var(--accent); }
+  h1 { font-family: 'Oswald', sans-serif; font-size: 24px; font-weight: 700; text-transform: uppercase; }
+
+  .tabs { display: flex; gap: 8px; padding: 14px 18px; }
+  .tab-btn {
+    flex: 1; padding: 10px; border: 1px solid var(--line); background: var(--panel); color: var(--text-dim);
+    font-family: 'JetBrains Mono', monospace; font-size: 11px; font-weight: 700; letter-spacing: 1px;
+    text-transform: uppercase; border-radius: 6px; cursor: pointer;
+  }
+  .tab-btn.active { background: var(--text); color: var(--bg); border-color: var(--text); }
+
+  main { flex: 1; overflow-y: auto; padding: 0 18px 30px; }
+
+  .filters { display: flex; gap: 6px; margin-bottom: 14px; flex-wrap: wrap; }
+  .filter-chip {
+    padding: 6px 10px; border: 1px solid var(--line); border-radius: 20px; background: var(--panel);
+    font-size: 11px; color: var(--text-dim); cursor: pointer; font-family: 'JetBrains Mono', monospace;
+  }
+  .filter-chip.active { background: var(--accent); color: #fff; border-color: var(--accent); }
+
+  .card {
+    background: var(--panel); border: 1px solid var(--line); border-radius: 8px;
+    padding: 14px; margin-bottom: 12px;
+  }
+  .card-top { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px; }
+  .card-id { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--text-faint); }
+  .card-title { font-family: 'Oswald', sans-serif; font-weight: 700; font-size: 16px; text-transform: uppercase; }
+  .card-price { font-family: 'JetBrains Mono', monospace; font-weight: 700; color: var(--accent); font-size: 14px; }
+  .card-row { font-size: 12px; color: var(--text-dim); line-height: 1.6; }
+  .card-row b { color: var(--text); }
+
+  .status-select {
+    margin-top: 10px; width: 100%; padding: 8px; border: 1px solid var(--line); border-radius: 6px;
+    background: var(--bg); color: var(--text); font-size: 13px; font-family: 'Inter', sans-serif;
+  }
+
+  .btn-row { display: flex; gap: 8px; margin-top: 10px; }
+  .btn {
+    flex: 1; padding: 10px; border: none; border-radius: 6px; font-family: 'Oswald', sans-serif;
+    font-weight: 700; font-size: 13px; text-transform: uppercase; cursor: pointer;
+  }
+  .btn-confirm { background: var(--ok); color: #fff; }
+  .btn-reject { background: var(--accent); color: #fff; }
+  .btn:disabled { opacity: 0.5; }
+
+  .empty-state { text-align: center; padding: 60px 20px; color: var(--text-faint); font-size: 13px; }
+  .denied { text-align: center; padding: 80px 20px; }
+  .denied .headline { font-family: 'Oswald', sans-serif; font-size: 20px; font-weight: 700; text-transform: uppercase; margin-bottom: 8px; }
+  .denied p { color: var(--text-dim); font-size: 13px; }
+
+  .badge { display: inline-block; padding: 2px 8px; border-radius: 20px; font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; }
+  .badge.new { background: #ffe9b0; color: #7a5800; }
+  .badge.processing { background: #d6e8ff; color: #1a4c8a; }
+  .badge.shipped { background: #d6f5df; color: #1a6b34; }
+  .badge.done { background: #dcdcdc; color: #444; }
+  .badge.cancelled { background: #ffd9d3; color: #a02a1a; }
+</style>
+</head>
+<body>
+
+<div class="marquee">
+  <div class="marquee-track" id="marqueeTrack">
+    <div class="marquee-item"><b>SWAG CLUB</b> — ADMIN PANEL —</div>
+    <div class="marquee-item"><b>SWAG CLUB</b> — ADMIN PANEL —</div>
+  </div>
+</div>
+
+<header>
+  <div class="eyebrow">[ <b>SWAG CLUB</b> × ADMIN ]</div>
+  <h1>Панель управления</h1>
+</header>
+
+<div class="tabs">
+  <button class="tab-btn active" id="tabOrders">Заказы</button>
+  <button class="tab-btn" id="tabPayments">Оплаты</button>
+</div>
+
+<main id="main">
+  <div class="empty-state">Загрузка…</div>
+</main>
+
+<script>
+(function() {
+  function setVh() { document.documentElement.style.setProperty('--vh', (window.innerHeight * 0.01) + 'px'); }
+  setVh();
+  window.addEventListener('resize', setVh);
+
+  var track = document.getElementById('marqueeTrack');
+  if (track) track.innerHTML += track.innerHTML;
+
+  var tg = window.Telegram && window.Telegram.WebApp ? window.Telegram.WebApp : null;
+  if (tg) {
+    try {
+      tg.ready();
+      tg.expand();
+      if (tg.setHeaderColor) tg.setHeaderColor('#f5f4ef');
+      if (tg.setBackgroundColor) tg.setBackgroundColor('#f5f4ef');
+    } catch(e) {}
+  }
+
+  var mainEl = document.getElementById('main');
+  var tabOrders = document.getElementById('tabOrders');
+  var tabPayments = document.getElementById('tabPayments');
+  var currentTab = 'orders';
+  var orderFilter = null;
+
+  var STATUS_LABELS = {
+    new: 'Новый', processing: 'В обработке', shipped: 'Отправлен', done: 'Завершён', cancelled: 'Отменён'
+  };
+
+  async function apiCall(path, payload) {
+    var initData = window.SwagAuth ? window.SwagAuth.getInitData() : (tg ? tg.initData : '');
+    try {
+      var res = await fetch(path, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(Object.assign({ initData: initData }, payload || {})),
+      });
+      return await res.json();
+    } catch (e) {
+      return { ok: false, message: 'Ошибка сети' };
+    }
+  }
+
+  function renderDenied(message) {
+    mainEl.innerHTML =
+      '<div class="denied"><div class="headline">Доступ закрыт</div><p>' + message + '</p></div>';
+  }
+
+  function escapeHtml(s) {
+    return String(s == null ? '' : s).replace(/[&<>"']/g, function(c) {
+      return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+    });
+  }
+
+  function renderOrders(orders) {
+    if (!orders.length) {
+      mainEl.innerHTML = '<div class="empty-state">Заказов пока нет</div>';
+      return;
+    }
+
+    var filterRow =
+      '<div class="filters">' +
+      ['all', 'new', 'processing', 'shipped', 'done', 'cancelled'].map(function(f) {
+        var active = (orderFilter === f) || (f === 'all' && !orderFilter);
+        var label = f === 'all' ? 'Все' : STATUS_LABELS[f];
+        return '<div class="filter-chip' + (active ? ' active' : '') + '" data-filter="' + f + '">' + label + '</div>';
+      }).join('') +
+      '</div>';
+
+    var cards = orders.map(function(o) {
+      var opts = {};
+      try { opts = JSON.parse(o.options_json || '{}'); } catch(e) {}
+      var optsText = Object.keys(opts).map(function(k) { return k + ': ' + opts[k]; }).join(' · ');
+
+      return (
+        '<div class="card" data-order-id="' + o.id + '">' +
+          '<div class="card-top">' +
+            '<div><div class="card-id">#' + o.id + ' · <span class="badge ' + o.status + '">' + (STATUS_LABELS[o.status] || o.status) + '</span></div>' +
+            '<div class="card-title">' + escapeHtml(o.product) + '</div></div>' +
+            '<div class="card-price">' + (o.price || 0) + ' ₽</div>' +
+          '</div>' +
+          (optsText ? '<div class="card-row">' + escapeHtml(optsText) + '</div>' : '') +
+          '<div class="card-row"><b>Telegram:</b> ' + escapeHtml(o.telegram_handle) + ' (id ' + o.tg_id + ')</div>' +
+          '<div class="card-row"><b>Имя:</b> ' + escapeHtml(o.first_name) + ' ' + escapeHtml(o.last_name) + '</div>' +
+          '<div class="card-row"><b>Адрес:</b> ' + escapeHtml(o.country) + ', ' + escapeHtml(o.city) + ', ' + escapeHtml(o.address) + '</div>' +
+          '<div class="card-row"><b>ПВЗ Яндекс:</b> ' + escapeHtml(o.has_pvz) + '</div>' +
+          '<div class="card-row"><b>Тел:</b> ' + escapeHtml(o.phone) + ' · <b>Email:</b> ' + escapeHtml(o.email) + '</div>' +
+          '<div class="card-row"><b>Дата:</b> ' + escapeHtml((o.created_at || '').slice(0, 16).replace('T', ' ')) + '</div>' +
+          '<select class="status-select" data-order-id="' + o.id + '">' +
+            Object.keys(STATUS_LABELS).map(function(s) {
+              return '<option value="' + s + '"' + (s === o.status ? ' selected' : '') + '>' + STATUS_LABELS[s] + '</option>';
+            }).join('') +
+          '</select>' +
+        '</div>'
+      );
+    }).join('');
+
+    mainEl.innerHTML = filterRow + cards;
+
+    mainEl.querySelectorAll('.filter-chip').forEach(function(chip) {
+      chip.addEventListener('click', function() {
+        orderFilter = chip.dataset.filter === 'all' ? null : chip.dataset.filter;
+        loadOrders();
+      });
+    });
+
+    mainEl.querySelectorAll('.status-select').forEach(function(sel) {
+      sel.addEventListener('change', async function() {
+        var orderId = sel.dataset.orderId;
+        var newStatus = sel.value;
+        sel.disabled = true;
+        var result = await apiCall('/api/admin/order-status', { order_id: orderId, status: newStatus });
+        sel.disabled = false;
+        if (result && result.ok) {
+          try { if (tg && tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('success'); } catch(e) {}
+          loadOrders();
+        } else {
+          try { if (tg && tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('error'); } catch(e) {}
+        }
+      });
+    });
+  }
+
+  function renderPayments(payments) {
+    if (!payments.length) {
+      mainEl.innerHTML = '<div class="empty-state">Нет заявок на подтверждение</div>';
+      return;
+    }
+
+    mainEl.innerHTML = payments.map(function(p) {
+      var handle = p.username ? ('@' + p.username) : ('id' + p.tg_id);
+      return (
+        '<div class="card" data-payment-id="' + p.id + '">' +
+          '<div class="card-top">' +
+            '<div class="card-id">#' + p.id + ' · ' + escapeHtml(p.method) + '</div>' +
+            '<div class="card-price">' + (p.amount || 0) + ' ₽</div>' +
+          '</div>' +
+          '<div class="card-row"><b>Пользователь:</b> ' + escapeHtml(handle) + '</div>' +
+          '<div class="card-row"><b>Срок:</b> ' + p.months + ' мес.</div>' +
+          '<div class="card-row"><b>Дата:</b> ' + escapeHtml((p.created_at || '').slice(0, 16).replace('T', ' ')) + '</div>' +
+          '<div class="btn-row">' +
+            '<button class="btn btn-confirm" data-action="confirm" data-payment-id="' + p.id + '">Подтвердить</button>' +
+            '<button class="btn btn-reject" data-action="reject" data-payment-id="' + p.id + '">Отклонить</button>' +
+          '</div>' +
+        '</div>'
+      );
+    }).join('');
+
+    mainEl.querySelectorAll('button[data-action]').forEach(function(btn) {
+      btn.addEventListener('click', async function() {
+        var paymentId = btn.dataset.paymentId;
+        var action = btn.dataset.action;
+        mainEl.querySelectorAll('button[data-payment-id="' + paymentId + '"]').forEach(function(b) { b.disabled = true; });
+
+        var result = await apiCall('/api/admin/payment-action', { payment_id: paymentId, action: action });
+        if (result && result.ok) {
+          try { if (tg && tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('success'); } catch(e) {}
+          loadPayments();
+        } else {
+          try { if (tg && tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('error'); } catch(e) {}
+          mainEl.querySelectorAll('button[data-payment-id="' + paymentId + '"]').forEach(function(b) { b.disabled = false; });
+        }
+      });
+    });
+  }
+
+  async function loadOrders() {
+    mainEl.innerHTML = '<div class="empty-state">Загрузка…</div>';
+    var result = await apiCall('/api/admin/orders', { status: orderFilter });
+    if (!result || !result.ok) {
+      renderDenied(result && result.message ? result.message : 'Не удалось загрузить заказы');
+      return;
+    }
+    renderOrders(result.orders || []);
+  }
+
+  async function loadPayments() {
+    mainEl.innerHTML = '<div class="empty-state">Загрузка…</div>';
+    var result = await apiCall('/api/admin/payments', { status: 'pending' });
+    if (!result || !result.ok) {
+      renderDenied(result && result.message ? result.message : 'Не удалось загрузить заявки');
+      return;
+    }
+    renderPayments(result.payments || []);
+  }
+
+  tabOrders.addEventListener('click', function() {
+    currentTab = 'orders';
+    tabOrders.classList.add('active');
+    tabPayments.classList.remove('active');
+    loadOrders();
+  });
+
+  tabPayments.addEventListener('click', function() {
+    currentTab = 'payments';
+    tabPayments.classList.add('active');
+    tabOrders.classList.remove('active');
+    loadPayments();
+  });
+
+  loadOrders();
+})();
+</script>
+
+</body>
+</html>
