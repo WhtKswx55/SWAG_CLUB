@@ -18,6 +18,7 @@ from aiogram.types import (
     PreCheckoutQuery,
     CallbackQuery,
     WebAppInfo,
+    FSInputFile,
 )
 from aiogram.webhook.aiohttp_server import SimpleRequestHandler, setup_application
 
@@ -29,6 +30,9 @@ BASE_URL = os.getenv("BASE_URL", "https://swagclubea-bot.onrender.com").rstrip("
 WEBAPP_URL = os.getenv(
     "WEBAPP_URL", "https://swagclubea-bot.onrender.com/WEB/index2.html"
 )
+ADMIN_WEBAPP_URL = os.getenv(
+    "ADMIN_WEBAPP_URL", "https://swagclubea-bot.onrender.com/WEB/admin.html"
+)
 
 ADMIN_IDS = [
     int(x)
@@ -39,6 +43,19 @@ ADMIN_IDS = [
 PAYMENT_PROVIDER_TOKEN = os.getenv("PAYMENT_PROVIDER_TOKEN", "")
 SUBSCRIPTION_PRICE_RUB = int(os.getenv("SUBSCRIPTION_PRICE_RUB", "300"))
 SUBSCRIPTION_PRICE_STARS = int(os.getenv("SUBSCRIPTION_PRICE_STARS", "150"))
+
+STARS_PRICES = {1: 150, 3: 420, 6: 800, 12: 1500}
+CARD_PRICES = {1: 300, 3: 800, 6: 1500, 12: 2800}
+
+# Реквизиты для ручной оплаты картой / СБП — задаются переменными окружения
+CARD_NUMBER = os.getenv("CARD_NUMBER", "0000 0000 0000 0000")
+CARD_BANK = os.getenv("CARD_BANK", "Т-Банк")
+CARD_HOLDER = os.getenv("CARD_HOLDER", "IVAN IVANOV")
+SBP_PHONE = os.getenv("SBP_PHONE", "+7 900 000-00-00")
+
+# Приветственное видео/анимация для /start (необязательно)
+WELCOME_VIDEO_URL = os.getenv("WELCOME_VIDEO_URL", "")
+WELCOME_VIDEO_PATH = os.getenv("WELCOME_VIDEO_PATH", "")
 
 WEBHOOK_PATH = f"/webhook/{BOT_TOKEN}" if BOT_TOKEN else "/webhook"
 WEBHOOK_URL = f"{BASE_URL}{WEBHOOK_PATH}"
@@ -82,12 +99,83 @@ def get_main_reply_keyboard() -> ReplyKeyboardMarkup:
 def get_subscribe_keyboard() -> InlineKeyboardMarkup:
     return InlineKeyboardMarkup(
         inline_keyboard=[
-            [InlineKeyboardButton(text="1 месяц — 150 ⭐", callback_data="buy_1")],
-            [InlineKeyboardButton(text="3 месяца — 420 ⭐", callback_data="buy_3")],
-            [InlineKeyboardButton(text="6 месяцев — 800 ⭐", callback_data="buy_6")],
-            [InlineKeyboardButton(text="12 месяцев — 1500 ⭐", callback_data="buy_12")],
+            [InlineKeyboardButton(text="⭐ Telegram Stars", callback_data="method_stars")],
+            [InlineKeyboardButton(text="💳 Карта / СБП", callback_data="method_card")],
         ]
     )
+
+
+def get_months_keyboard(method: str) -> InlineKeyboardMarkup:
+    prices = STARS_PRICES if method == "stars" else CARD_PRICES
+    unit = "⭐" if method == "stars" else "₽"
+    labels = {1: "1 месяц", 3: "3 месяца", 6: "6 месяцев", 12: "12 месяцев"}
+    rows = [
+        [InlineKeyboardButton(
+            text=f"{labels[m]} — {prices[m]} {unit}",
+            callback_data=f"buy_{method}_{m}",
+        )]
+        for m in (1, 3, 6, 12)
+    ]
+    rows.append([InlineKeyboardButton(text="⬅ Назад", callback_data="method_back")])
+    return InlineKeyboardMarkup(inline_keyboard=rows)
+
+
+WELCOME_LINES = [
+    "🎬 <i>Добро пожаловать в закрытый мир...</i>",
+    "👟 <b>SWAG CLUB</b> — это не просто дропы. Это культура.",
+    "🔥 Ранний доступ к тому, чего не будет у других. Community, статусы, эксклюзивы.",
+    "🎁 Открывай каталог, качай уровень, забирай дропы раньше всех.",
+]
+
+
+def _get_welcome_video():
+    if WELCOME_VIDEO_PATH and Path(WELCOME_VIDEO_PATH).exists():
+        return FSInputFile(WELCOME_VIDEO_PATH)
+    if WELCOME_VIDEO_URL:
+        return WELCOME_VIDEO_URL
+    return None
+
+
+async def send_animated_welcome(chat_id: int) -> None:
+    """Отправляет эффектное приветствие: видео/GIF, если оно настроено
+    (WELCOME_VIDEO_URL или WELCOME_VIDEO_PATH), иначе — текстовую анимацию
+    со «сборкой» сообщения по кусочкам."""
+    video = _get_welcome_video()
+    if video is not None:
+        try:
+            await bot.send_chat_action(chat_id, "upload_video")
+            await bot.send_video(
+                chat_id,
+                video=video,
+                caption=(
+                    "🎬 <b>SWAG CLUB</b> × ROLDOZZZER\n\n"
+                    "Закрытый клуб. Ранний доступ. Только для своих."
+                ),
+                parse_mode="HTML",
+            )
+            return
+        except Exception as e:
+            log.warning("Не удалось отправить приветственное видео: %s", e)
+
+    try:
+        await bot.send_chat_action(chat_id, "typing")
+        msg = await bot.send_message(chat_id, "🎬", parse_mode="HTML")
+        text_so_far = ""
+        for line in WELCOME_LINES:
+            await asyncio.sleep(0.55)
+            try:
+                await bot.send_chat_action(chat_id, "typing")
+            except Exception:
+                pass
+            text_so_far = (text_so_far + "\n\n" + line).strip()
+            try:
+                await bot.edit_message_text(
+                    text_so_far, chat_id=chat_id, message_id=msg.message_id, parse_mode="HTML"
+                )
+            except Exception:
+                pass
+    except Exception as e:
+        log.warning("Не удалось выполнить текстовую анимацию приветствия: %s", e)
 
 
 @dp.message(CommandStart())
@@ -97,6 +185,8 @@ async def cmd_start(message: Message) -> None:
         message.from_user.username,
         message.from_user.first_name,
     )
+
+    await send_animated_welcome(message.chat.id)
 
     webapp_kb = InlineKeyboardMarkup(
         inline_keyboard=[
@@ -110,7 +200,6 @@ async def cmd_start(message: Message) -> None:
     )
 
     await message.answer(
-        "Добро пожаловать в **SWAG CLUB**.\n\n"
         "Используйте кнопки меню внизу или откройте каталог ниже:",
         reply_markup=get_main_reply_keyboard(),
         parse_mode="Markdown",
@@ -119,6 +208,27 @@ async def cmd_start(message: Message) -> None:
     await message.answer(
         "Нажмите кнопку, чтобы зайти в закрытый каталог:",
         reply_markup=webapp_kb,
+    )
+
+
+@dp.message(Command("admin"))
+async def cmd_admin(message: Message) -> None:
+    if not is_admin(message.from_user.id):
+        return
+
+    admin_kb = InlineKeyboardMarkup(
+        inline_keyboard=[
+            [
+                InlineKeyboardButton(
+                    text="🛠 Открыть админку",
+                    web_app=WebAppInfo(url=ADMIN_WEBAPP_URL),
+                )
+            ]
+        ]
+    )
+    await message.answer(
+        "Панель администратора SWAG CLUB — заказы и подтверждение оплат.",
+        reply_markup=admin_kb,
     )
 
 
@@ -135,7 +245,7 @@ async def text_mystatus(message: Message) -> None:
 @dp.message(F.text == "💎 Подписка")
 async def text_subscribe(message: Message) -> None:
     await message.answer(
-        "💎 **Оформление подписки SWAG CLUB**\n\nВыберите срок подписки:",
+        "💎 **Оформление подписки SWAG CLUB**\n\nКак хочешь оплатить?",
         reply_markup=get_subscribe_keyboard(),
         parse_mode="Markdown",
     )
@@ -166,11 +276,38 @@ async def cmd_testsub(message: Message) -> None:
     )
 
 
-@dp.callback_query(F.data.startswith("buy_"))
-async def cb_buy(callback: CallbackQuery) -> None:
-    months = int(callback.data.split("_")[1])
-    prices_map = {1: 150, 3: 420, 6: 800, 12: 1500}
-    amount = prices_map.get(months, 150)
+@dp.callback_query(F.data.in_({"method_stars", "method_card"}))
+async def cb_method(callback: CallbackQuery) -> None:
+    method = "stars" if callback.data == "method_stars" else "card"
+    title = "⭐ Оплата Telegram Stars" if method == "stars" else "💳 Оплата картой / СБП"
+    try:
+        await callback.message.edit_text(
+            f"💎 **{title}**\n\nВыбери срок подписки:",
+            reply_markup=get_months_keyboard(method),
+            parse_mode="Markdown",
+        )
+    except Exception:
+        pass
+    await callback.answer()
+
+
+@dp.callback_query(F.data == "method_back")
+async def cb_method_back(callback: CallbackQuery) -> None:
+    try:
+        await callback.message.edit_text(
+            "💎 **Оформление подписки SWAG CLUB**\n\nКак хочешь оплатить?",
+            reply_markup=get_subscribe_keyboard(),
+            parse_mode="Markdown",
+        )
+    except Exception:
+        pass
+    await callback.answer()
+
+
+@dp.callback_query(F.data.startswith("buy_stars_"))
+async def cb_buy_stars(callback: CallbackQuery) -> None:
+    months = int(callback.data.split("_")[2])
+    amount = STARS_PRICES.get(months, 150)
 
     await bot.send_invoice(
         chat_id=callback.message.chat.id,
@@ -182,6 +319,180 @@ async def cb_buy(callback: CallbackQuery) -> None:
         prices=[LabeledPrice(label=f"{months} мес. подписки", amount=amount)],
     )
     await callback.answer()
+
+
+@dp.callback_query(F.data.startswith("buy_card_"))
+async def cb_buy_card(callback: CallbackQuery) -> None:
+    months = int(callback.data.split("_")[2])
+    amount = CARD_PRICES.get(months, CARD_PRICES[1])
+
+    payment_id = await db.create_pending_payment(
+        tg_id=callback.from_user.id,
+        username=callback.from_user.username,
+        first_name=callback.from_user.first_name,
+        months=months,
+        amount=amount,
+        method="card",
+    )
+
+    pay_kb = InlineKeyboardMarkup(
+        inline_keyboard=[
+            [InlineKeyboardButton(text="✅ Я оплатил(а)", callback_data=f"paid_{payment_id}")],
+        ]
+    )
+
+    try:
+        await callback.message.edit_text(
+            f"💳 **Оплата картой / СБП**\n\n"
+            f"Сумма: **{amount} ₽** ({months} мес. подписки)\n\n"
+            f"Карта: `{CARD_NUMBER}`\n"
+            f"Банк: {CARD_BANK}\n"
+            f"Получатель: {CARD_HOLDER}\n"
+            f"СБП: `{SBP_PHONE}`\n\n"
+            f"В комментарии к переводу укажи код заказа: `#{payment_id}`\n\n"
+            f"После перевода нажми кнопку ниже — заявка уйдёт администратору на подтверждение.",
+            reply_markup=pay_kb,
+            parse_mode="Markdown",
+        )
+    except Exception:
+        pass
+    await callback.answer()
+
+
+async def _confirm_payment(payment_id: int) -> dict:
+    payment = await db.get_pending_payment(payment_id)
+    if not payment or payment.get("status") != "pending":
+        return {"ok": False, "message": "Платёж не найден или уже обработан"}
+
+    resolved = await db.resolve_pending_payment(payment_id, "confirmed")
+    if not resolved:
+        return {"ok": False, "message": "Не удалось обработать платёж"}
+
+    status = await db.extend_subscription(
+        tg_id=payment["tg_id"],
+        months=payment["months"],
+        amount=payment["amount"],
+        currency="CARD",
+        charge_id=f"card_{payment_id}",
+        username=payment.get("username"),
+        first_name=payment.get("first_name"),
+    )
+
+    try:
+        await bot.send_message(
+            payment["tg_id"],
+            f"✅ **Оплата подтверждена!**\n\n{status_text(status)}",
+            parse_mode="Markdown",
+        )
+    except Exception as e:
+        log.warning("Не удалось уведомить пользователя об оплате: %s", e)
+
+    return {"ok": True, "status": status, "payment": payment}
+
+
+async def _reject_payment(payment_id: int) -> dict:
+    payment = await db.get_pending_payment(payment_id)
+    if not payment or payment.get("status") != "pending":
+        return {"ok": False, "message": "Платёж не найден или уже обработан"}
+
+    await db.resolve_pending_payment(payment_id, "rejected")
+
+    try:
+        await bot.send_message(
+            payment["tg_id"],
+            "❌ Оплата не подтверждена администратором. "
+            "Если ты уверен(а), что перевод прошёл — напиши в поддержку.",
+        )
+    except Exception as e:
+        log.warning("Не удалось уведомить пользователя об отклонении оплаты: %s", e)
+
+    return {"ok": True, "payment": payment}
+
+
+@dp.callback_query(F.data.startswith("paid_"))
+async def cb_paid(callback: CallbackQuery) -> None:
+    payment_id = int(callback.data.split("_")[1])
+    payment = await db.get_pending_payment(payment_id)
+
+    if not payment or payment["tg_id"] != callback.from_user.id:
+        await callback.answer("Заявка не найдена", show_alert=True)
+        return
+
+    if payment["status"] != "pending":
+        await callback.answer("Эта заявка уже обработана", show_alert=True)
+        return
+
+    try:
+        await callback.message.edit_text(
+            f"⏳ **Заявка отправлена на проверку**\n\n"
+            f"Код заказа: `#{payment_id}`\n"
+            f"Сумма: {payment['amount']} ₽\n\n"
+            f"Администратор подтвердит оплату в ближайшее время, "
+            f"подписка активируется автоматически.",
+            parse_mode="Markdown",
+        )
+    except Exception:
+        pass
+    await callback.answer()
+
+    admin_kb = InlineKeyboardMarkup(
+        inline_keyboard=[
+            [
+                InlineKeyboardButton(text="✅ Подтвердить", callback_data=f"admconf_{payment_id}"),
+                InlineKeyboardButton(text="❌ Отклонить", callback_data=f"admrej_{payment_id}"),
+            ]
+        ]
+    )
+    handle = f"@{payment['username']}" if payment.get("username") else f"id{payment['tg_id']}"
+    admin_text = (
+        f"💳 **Новая заявка на оплату #{payment_id}**\n\n"
+        f"Пользователь: {handle}\n"
+        f"Сумма: {payment['amount']} ₽\n"
+        f"Срок: {payment['months']} мес."
+    )
+    for admin_id in ADMIN_IDS:
+        try:
+            await bot.send_message(admin_id, admin_text, reply_markup=admin_kb, parse_mode="Markdown")
+        except Exception as e:
+            log.warning("Не удалось уведомить админа %s о новой заявке: %s", admin_id, e)
+
+
+@dp.callback_query(F.data.startswith("admconf_"))
+async def cb_admin_confirm(callback: CallbackQuery) -> None:
+    if not is_admin(callback.from_user.id):
+        await callback.answer("Только для администраторов", show_alert=True)
+        return
+
+    payment_id = int(callback.data.split("_")[1])
+    result = await _confirm_payment(payment_id)
+
+    if result.get("ok"):
+        try:
+            await callback.message.edit_text(callback.message.text + "\n\n✅ Подтверждено")
+        except Exception:
+            pass
+        await callback.answer("Подтверждено")
+    else:
+        await callback.answer(result.get("message", "Ошибка"), show_alert=True)
+
+
+@dp.callback_query(F.data.startswith("admrej_"))
+async def cb_admin_reject(callback: CallbackQuery) -> None:
+    if not is_admin(callback.from_user.id):
+        await callback.answer("Только для администраторов", show_alert=True)
+        return
+
+    payment_id = int(callback.data.split("_")[1])
+    result = await _reject_payment(payment_id)
+
+    if result.get("ok"):
+        try:
+            await callback.message.edit_text(callback.message.text + "\n\n❌ Отклонено")
+        except Exception:
+            pass
+        await callback.answer("Отклонено")
+    else:
+        await callback.answer(result.get("message", "Ошибка"), show_alert=True)
 
 
 @dp.pre_checkout_query()
@@ -259,7 +570,7 @@ async def api_create_invoice_link(request: web.Request) -> web.Response:
 
     months = int(body.get("months", 1) or 1)
 
-    prices_map = {1: 150, 3: 420, 6: 800, 12: 1500}
+    prices_map = STARS_PRICES
     amount = prices_map.get(months, 150)
 
     try:
@@ -383,6 +694,83 @@ async def api_create_order(request: web.Request) -> web.Response:
     return web.json_response({"ok": True, "order_id": order_id})
 
 
+def _require_admin(tg_user: dict) -> bool:
+    return bool(tg_user) and tg_user.get("id") in ADMIN_IDS
+
+
+async def api_admin_orders(request: web.Request) -> web.Response:
+    try:
+        body = await request.json()
+    except Exception:
+        return _json_error("Некорректный запрос")
+
+    tg_user = extract_tg_user(body.get("initData", ""), BOT_TOKEN)
+    if not _require_admin(tg_user):
+        return _json_error("Доступ только для администраторов", status=403)
+
+    status_filter = body.get("status") or None
+    orders = await db.list_orders(status=status_filter, limit=200)
+    return web.json_response({"ok": True, "orders": orders})
+
+
+async def api_admin_order_status(request: web.Request) -> web.Response:
+    try:
+        body = await request.json()
+    except Exception:
+        return _json_error("Некорректный запрос")
+
+    tg_user = extract_tg_user(body.get("initData", ""), BOT_TOKEN)
+    if not _require_admin(tg_user):
+        return _json_error("Доступ только для администраторов", status=403)
+
+    order_id = body.get("order_id")
+    new_status = str(body.get("status", "")).strip()
+    allowed = {"new", "processing", "shipped", "done", "cancelled"}
+    if not order_id or new_status not in allowed:
+        return _json_error("Некорректные параметры")
+
+    ok = await db.update_order_status(int(order_id), new_status)
+    return web.json_response({"ok": ok})
+
+
+async def api_admin_payments(request: web.Request) -> web.Response:
+    try:
+        body = await request.json()
+    except Exception:
+        return _json_error("Некорректный запрос")
+
+    tg_user = extract_tg_user(body.get("initData", ""), BOT_TOKEN)
+    if not _require_admin(tg_user):
+        return _json_error("Доступ только для администраторов", status=403)
+
+    status_filter = body.get("status", "pending")
+    payments = await db.list_pending_payments(status=status_filter, limit=200)
+    return web.json_response({"ok": True, "payments": payments})
+
+
+async def api_admin_payment_action(request: web.Request) -> web.Response:
+    try:
+        body = await request.json()
+    except Exception:
+        return _json_error("Некорректный запрос")
+
+    tg_user = extract_tg_user(body.get("initData", ""), BOT_TOKEN)
+    if not _require_admin(tg_user):
+        return _json_error("Доступ только для администраторов", status=403)
+
+    payment_id = body.get("payment_id")
+    action = body.get("action")
+    if not payment_id or action not in ("confirm", "reject"):
+        return _json_error("Некорректные параметры")
+
+    if action == "confirm":
+        result = await _confirm_payment(int(payment_id))
+    else:
+        result = await _reject_payment(int(payment_id))
+
+    return web.json_response(result)
+
+
 async def health(request: web.Request) -> web.Response:
     return web.Response(text="ok")
 
@@ -440,6 +828,10 @@ def create_app() -> web.Application:
     app.router.add_post("/api/create-invoice-link", api_create_invoice_link)
     app.router.add_post("/api/redeem-code", api_redeem_code)
     app.router.add_post("/api/create-order", api_create_order)
+    app.router.add_post("/api/admin/orders", api_admin_orders)
+    app.router.add_post("/api/admin/order-status", api_admin_order_status)
+    app.router.add_post("/api/admin/payments", api_admin_payments)
+    app.router.add_post("/api/admin/payment-action", api_admin_payment_action)
     app.router.add_get("/auth.js", lambda request: web.FileResponse(Path(__file__).parent / "auth.js"))
 
     web_dir = Path(__file__).parent / "WEB"

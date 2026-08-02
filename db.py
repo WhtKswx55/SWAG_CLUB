@@ -102,7 +102,30 @@ def _init_sync() -> None:
                 has_pvz         TEXT,
                 phone           TEXT,
                 email           TEXT,
+                status          TEXT NOT NULL DEFAULT 'new',
                 created_at      TEXT NOT NULL
+            )
+            """
+        )
+        # миграция для баз, созданных до появления колонки status
+        try:
+            conn.execute("ALTER TABLE orders ADD COLUMN status TEXT NOT NULL DEFAULT 'new'")
+        except sqlite3.OperationalError:
+            pass
+
+        conn.execute(
+            """
+            CREATE TABLE IF NOT EXISTS pending_payments (
+                id            INTEGER PRIMARY KEY AUTOINCREMENT,
+                tg_id         INTEGER NOT NULL,
+                username      TEXT,
+                first_name    TEXT,
+                months        INTEGER NOT NULL,
+                amount        INTEGER,
+                method        TEXT,
+                status        TEXT NOT NULL DEFAULT 'pending',
+                created_at    TEXT NOT NULL,
+                resolved_at   TEXT
             )
             """
         )
@@ -419,3 +442,106 @@ def _create_order_sync(order: dict) -> int:
 
 async def create_order(order: dict) -> int:
     return await asyncio.to_thread(_create_order_sync, order)
+
+
+def _list_orders_sync(status: Optional[str], limit: int) -> list:
+    with closing(_connect()) as conn, conn:
+        if status:
+            rows = conn.execute(
+                "SELECT * FROM orders WHERE status = ? ORDER BY id DESC LIMIT ?",
+                (status, limit),
+            ).fetchall()
+        else:
+            rows = conn.execute(
+                "SELECT * FROM orders ORDER BY id DESC LIMIT ?", (limit,)
+            ).fetchall()
+        return [dict(r) for r in rows]
+
+
+async def list_orders(status: Optional[str] = None, limit: int = 100) -> list:
+    return await asyncio.to_thread(_list_orders_sync, status, limit)
+
+
+def _update_order_status_sync(order_id: int, status: str) -> bool:
+    with closing(_connect()) as conn, conn:
+        cur = conn.execute(
+            "UPDATE orders SET status = ? WHERE id = ?", (status, order_id)
+        )
+        return cur.rowcount > 0
+
+
+async def update_order_status(order_id: int, status: str) -> bool:
+    return await asyncio.to_thread(_update_order_status_sync, order_id, status)
+
+
+def _create_pending_payment_sync(
+    tg_id: int,
+    username: Optional[str],
+    first_name: Optional[str],
+    months: int,
+    amount: Optional[int],
+    method: str,
+) -> int:
+    with closing(_connect()) as conn, conn:
+        cur = conn.execute(
+            "INSERT INTO pending_payments (tg_id, username, first_name, months, amount, method, status, created_at) "
+            "VALUES (?, ?, ?, ?, ?, ?, 'pending', ?)",
+            (tg_id, username, first_name, months, amount, method, _iso(_now())),
+        )
+        return cur.lastrowid
+
+
+async def create_pending_payment(
+    tg_id: int,
+    username: Optional[str],
+    first_name: Optional[str],
+    months: int,
+    amount: Optional[int],
+    method: str,
+) -> int:
+    return await asyncio.to_thread(
+        _create_pending_payment_sync, tg_id, username, first_name, months, amount, method
+    )
+
+
+def _get_pending_payment_sync(payment_id: int) -> Optional[dict]:
+    with closing(_connect()) as conn, conn:
+        row = conn.execute(
+            "SELECT * FROM pending_payments WHERE id = ?", (payment_id,)
+        ).fetchone()
+        return dict(row) if row else None
+
+
+async def get_pending_payment(payment_id: int) -> Optional[dict]:
+    return await asyncio.to_thread(_get_pending_payment_sync, payment_id)
+
+
+def _list_pending_payments_sync(status: Optional[str], limit: int) -> list:
+    with closing(_connect()) as conn, conn:
+        if status:
+            rows = conn.execute(
+                "SELECT * FROM pending_payments WHERE status = ? ORDER BY id DESC LIMIT ?",
+                (status, limit),
+            ).fetchall()
+        else:
+            rows = conn.execute(
+                "SELECT * FROM pending_payments ORDER BY id DESC LIMIT ?", (limit,)
+            ).fetchall()
+        return [dict(r) for r in rows]
+
+
+async def list_pending_payments(status: Optional[str] = "pending", limit: int = 100) -> list:
+    return await asyncio.to_thread(_list_pending_payments_sync, status, limit)
+
+
+def _resolve_pending_payment_sync(payment_id: int, status: str) -> bool:
+    with closing(_connect()) as conn, conn:
+        cur = conn.execute(
+            "UPDATE pending_payments SET status = ?, resolved_at = ? WHERE id = ? AND status = 'pending'",
+            (status, _iso(_now()), payment_id),
+        )
+        return cur.rowcount > 0
+
+
+async def resolve_pending_payment(payment_id: int, status: str) -> bool:
+    return await asyncio.to_thread(_resolve_pending_payment_sync, payment_id, status)
